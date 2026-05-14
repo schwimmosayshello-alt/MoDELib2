@@ -89,15 +89,14 @@ namespace model
             return currentPrev;
         }
         return nullptr;
-
     }
     
     template <int dim>
     const DislocationLoopNode<dim>* DislocationLoopNode<dim>::periodicNext() const
     {
-         auto currentNext(this->next.first);
-        if (currentNext)
+        if (this->next.first)
         {
+            auto currentNext(this->next.first);
             while (currentNext->periodicPlaneEdge.first)
             {
                 if (currentNext == this)  //This if statement can return the current node as periodicNext. Discuss this with Dr. Po
@@ -105,12 +104,10 @@ namespace model
                     return nullptr;
                 }
                 currentNext = currentNext->next.first;
-
             }
             return currentNext;
         }
         return nullptr;
-
     }
     
     template <int dim>

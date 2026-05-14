@@ -20,7 +20,7 @@ namespace model
 
     SlipSystem::SlipSystem(const GlidePlaneBase& n_in,
                            const RationalLatticeDirection<3>& slip_in,
-                           const std::shared_ptr<DislocationMobilityBase>& mobility_in,
+                           const std::shared_ptr<DislocationMobility>& mobility_in,
                            const std::shared_ptr<GlidePlaneNoise>& planeNoise_in):
     /* init */ n(n_in)
     /* init */,s(slip_in)
@@ -126,6 +126,12 @@ namespace model
             return std::make_tuple(Eigen::Matrix<double,3,3>::Zero(),0.0,0.0);
         }
     }
+
+double SlipSystem::velocity(const MatrixDim& S,const VectorDim& xi,const double& T) const
+{
+    return mobility? mobility->velocity(S,s.cartesian(),xi,unitNormal,T) : 0.0;
+}
+
 
 }
 #endif

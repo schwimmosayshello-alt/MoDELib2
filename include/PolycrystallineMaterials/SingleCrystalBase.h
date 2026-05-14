@@ -24,6 +24,7 @@
 #include <BCClattice.h>
 #include <FCClattice.h>
 #include <HEXlattice.h>
+#include <CubicFluoriteCrystal.h>
 
 namespace model
 {

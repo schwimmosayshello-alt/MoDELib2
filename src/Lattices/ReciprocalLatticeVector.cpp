@@ -127,7 +127,7 @@ ReciprocalLatticeVector<dim>::ReciprocalLatticeVector(const VectorDimI &d,
     template <int dim>
     long int ReciprocalLatticeVector<dim>::closestPlaneIndexOfPoint(const VectorDimD &P) const
     {
-        assert(basae().squaredNorm() > 0 && "A null ReciprocalLatticeVector cannot be used to compute planeIndexOfPoint");
+        assert(base().squaredNorm() > 0 && "A null ReciprocalLatticeVector cannot be used to compute planeIndexOfPoint");
         const double hd(cartesian().dot(P));
         return std::lround(hd);
     }

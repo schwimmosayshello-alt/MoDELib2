@@ -27,6 +27,8 @@
 #include <FrankLoopsGenerator.h>
 #include <PlanarLoopGenerator.h>
 #include <ClusterDynamicsParameters.h>
+#include <StrUtilities.h>
+#include <SutherlandHodgman.h>
 
 namespace model
 {
@@ -159,9 +161,9 @@ namespace model
         const auto microstructureFiles(TextFileParser(ddBase.simulationParameters.traitsIO.microstructureFile).readStringVector("microstructureFile"));
         for(const auto& pair : microstructureFiles)
         {
-            const std::string microstructureFileName(std::filesystem::path(ddBase.simulationParameters.traitsIO.microstructureFile).parent_path().string()+"/"+TextFileParser::removeSpaces(pair.first));
-            const std::string type(TextFileParser::removeSpaces(TextFileParser(microstructureFileName).readString("type",false)));
-            const std::string style(TextFileParser::removeSpaces(TextFileParser(microstructureFileName).readString("style",false)));
+            const std::string microstructureFileName(std::filesystem::path(ddBase.simulationParameters.traitsIO.microstructureFile).parent_path().string()+"/"+StrUtilities::removeSpaces(pair.first));
+            const std::string type(StrUtilities::removeSpaces(TextFileParser(microstructureFileName).readString("type",false)));
+            const std::string style(StrUtilities::removeSpaces(TextFileParser(microstructureFileName).readString("style",false)));
                         
             if(type=="ShearLoop")
             {
@@ -358,7 +360,7 @@ namespace model
                                                      const VectorDimD& P0,
                                                      const size_t& grainID,
                                                      const DislocationLoopIO<dim>::DislocationLoopType& loopType)
-    {
+{
         const bool nodesInsideGrain(ddBase.isPeriodicDomain? true : allPointsInGrain(loopNodePos,grainID));
         if(nodesInsideGrain)
         {
@@ -389,9 +391,73 @@ namespace model
         }
         else
         {
-            std::cout<<"nodes outside grain "<<grainID<<std::endl;
-            return false;
+            bool trimLoops(false);
+            if(trimLoops)
+            {// trim with glide plane and call recursively
+            std::cout<<"Nodes outside grain: trimming loop"<<grainID<<std::endl;
+            std::vector<Eigen::Matrix<double,dim-1,1>> localNodePos;
+            for(const auto& globalPos : loopNodePos)
+            {
+                localNodePos.push_back(periodicPlane->referencePlane->localPosition(globalPos));
+            }
+            
+            std::vector<Eigen::Matrix<double,dim-1,1>> localPlanePos;
+            for(const auto& seg : periodicPlane->referencePlane->meshIntersections)
+            {
+                localPlanePos.push_back(periodicPlane->referencePlane->localPosition(seg->P0));
+            }
+            
+            const auto trimmedLocalNodePos(SutherlandHodgman::clip(localNodePos,localPlanePos));
+            std::vector<VectorDimD> trimmedGlobalNodePos;
+            for(const auto& localPos : trimmedLocalNodePos)
+            {
+                trimmedGlobalNodePos.push_back(periodicPlane->referencePlane->globalPosition(localPos));
+            }
+            
+            const size_t loopID(insertLoop(b,unitNormal,P0,grainID,loopType));
+            std::vector<size_t> loopNodeIDs;
+            
+            const auto centralPatch(periodicPlane->patches().getFromKey(VectorDimD::Zero()));
+            
+            for(const auto& loopNodePos : trimmedGlobalNodePos)
+            {
+                const VectorDimD& networkNodePos(loopNodePos);
+                const auto networkNodeIter(uniqueNetworkNodeMap.find(networkNodePos));
+                if(networkNodeIter==uniqueNetworkNodeMap.end())
+                {// no NetworkNode found at current position
+                    uniqueNetworkNodeMap.emplace(networkNodePos,insertNetworkNode(networkNodePos)); // insert NetworkNode and store its ID
+                }
+                
+                std::pair<short int,short int> edgeIDs(std::make_pair(-1,-1));
+                
+                for(const auto& edge : centralPatch->edges())
+                {
+                    if(edge->meshIntersection->contains(loopNodePos))
+                    {
+                        if(edgeIDs.first==-1)
+                        {
+                            edgeIDs.first=edge->edgeID;
+                        }
+                        else
+                        {
+                            edgeIDs.second=edge->edgeID;
+                        }
+                    }
+                }
+                
+                loopNodeIDs.push_back(insertLoopNode(loopID,loopNodePos,uniqueNetworkNodeMap.at(networkNodePos),VectorDimD::Zero(),edgeIDs)); // insert LoopNode and store its ID
+                
+                //                trimmedGlobalNodePos.push_back(periodicPlane->referencePlane->globalPosition(localPos));
+            }
+            insertLoopLinks(loopID,loopNodeIDs);
+            return true;
+            //            return insertJunctionLoop(trimmedGlobalNodePos,periodicPlane,b,unitNormal,P0,grainID,loopType);
         }
+            else
+            {
+                return false;
+            }
+                }
     }
 
     size_t MicrostructureGenerator::insertLoop(const VectorDimD& b,const VectorDimD& unitNormal,const VectorDimD& P0,const size_t& grainID,const DislocationLoopType& loopType)

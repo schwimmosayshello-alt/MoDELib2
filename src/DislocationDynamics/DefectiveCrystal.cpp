@@ -129,6 +129,7 @@ namespace model
     {/*! Runs a number of simulation time steps defined by simulationParameters.Nsteps
       */
         const auto t0= std::chrono::system_clock::now();
+        this->updateConfiguration();
         while (this->ddBase.simulationParameters.runID<this->ddBase.simulationParameters.Nsteps)
         {
             runSingleStep();

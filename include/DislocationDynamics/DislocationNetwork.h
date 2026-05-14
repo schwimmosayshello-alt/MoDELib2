@@ -124,6 +124,8 @@ namespace model
         DDtimeStepper<DislocationNetwork<dim>> timeStepper;
         std::shared_ptr<StochasticForceGenerator> stochasticForceGenerator;
         int ddSolverType;
+        int bulkNucleationModel;
+        int surfaceNucleationModel;
         bool computeDDinteractions;
         bool outputQuadraturePoints;
         bool outputLinkingNumbers;
@@ -158,6 +160,8 @@ namespace model
 
 
         void setConfiguration(const DDconfigIO<dim>&);
+        void addConfiguration(const DDconfigIO<dim>&);
+
         MatrixDim averagePlasticStrain() const;
         std::map<std::pair<int,int>,double> slipSystemAveragePlasticDistortion() const;
         MatrixDim averagePlasticStrainRate() const;

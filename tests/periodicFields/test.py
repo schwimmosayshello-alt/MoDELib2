@@ -92,6 +92,8 @@ if compute:
         print("BEFORE defectiveCrystal")
         defectiveCrystal=pyMoDELib.DefectiveCrystal(ddBase)
         print("AFTER defectiveCrystal")
+        
+        
         spec=pyMoDELib.PeriodicDipoleIndividualSpecification()
         spec.slipSystemIDs=[0,1]
         spec.exitFaceIDs=[1,1]

@@ -64,25 +64,42 @@ namespace model
 
             std::normal_distribution<double> radiusDistribution(spec.radiusDistributionMean/mg.ddBase.poly.b_SI,spec.radiusDistributionStd/mg.ddBase.poly.b_SI);
             std::mt19937 generator;
+            
+            std::uniform_int_distribution<> allowedPlaneDist(0,spec.allowedPlaneIDs.size()-1);
+
+            std::set<int> allowedGrainIDsSet;
+            for(const auto& gID : spec.allowedGrainIDs)
+            {
+                allowedGrainIDsSet.insert(gID);
+            }
+            const double allowAllGrains(allowedGrainIDsSet.size() ? (*allowedGrainIDsSet.begin())<0 : true);
+
+            
             double density=0.0;
             while(density<spec.targetDensity)
             {
                 const std::pair<LatticeVector<3>, int> rp(mg.ddBase.poly.randomLatticePointInMesh());
                 const LatticeVector<3> L0=rp.first;
                 const size_t grainID=rp.second;
-                std::uniform_int_distribution<> ssDist(0,mg.ddBase.poly.grain(grainID)->planeNormals().size()-1);
-                const int pID(ssDist(generator)); // a random SlipSystem
-                const double radius(radiusDistribution(generator));
-                try
+                if(allowAllGrains || allowedGrainIDsSet.find(grainID)!=allowedGrainIDsSet.end())
                 {
-                    const bool isVL(spec.areVacancyLoops>0);
-                    generateSingle(mg,pID,L0.cartesian(),radius,spec.numberOfSides,isVL);
-                    density+=2.0*std::numbers::pi*radius/mg.ddBase.mesh.volume()/std::pow(mg.ddBase.poly.b_SI,2);
-                    std::cout<<"Frank loop density="<<density<<std::endl;
-                }
-                catch(const std::exception& e)
-                {
-                    
+                    std::uniform_int_distribution<> ssDist(0,mg.ddBase.poly.grain(grainID)->planeNormals().size()-1);
+                    const int allowedIndex(allowedPlaneDist(generator));
+                    const int allowedPlaneID(spec.allowedPlaneIDs[allowedIndex]);
+
+                    const int pID(allowedPlaneID<0? ssDist(generator) : allowedPlaneID); // a random SlipSystem
+                    const double radius(radiusDistribution(generator));
+                    try
+                    {
+                        const bool isVL(spec.areVacancyLoops>0);
+                        generateSingle(mg,pID,L0.cartesian(),radius,spec.numberOfSides,isVL);
+                        density+=2.0*std::numbers::pi*radius/mg.ddBase.mesh.volume()/std::pow(mg.ddBase.poly.b_SI,2);
+                        std::cout<<"Frank loop density="<<density<<std::endl;
+                    }
+                    catch(const std::exception& e)
+                    {
+                        
+                    }
                 }
             }
         }

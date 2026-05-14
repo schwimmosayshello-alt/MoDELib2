@@ -127,6 +127,8 @@ namespace model
         QCheckBox* showMesh;
         QCheckBox* showExternalFaceIDs;
         QCheckBox* showFaceBoundaries;
+        QCheckBox* showPeriodicFaces;
+        
 //        QCheckBox* showGrainColors;
         QCheckBox* showRegionBoundaries;
         QSlider* sliderRegionBoundaries;
@@ -167,6 +169,14 @@ namespace model
         vtkSmartPointer<vtkPolyData> gbTrianglePolyData;
         vtkSmartPointer<vtkPolyDataMapper> gbMapper;
         vtkSmartPointer<vtkActor> gbActor;
+        
+//        vtkSmartPointer<vtkUnsignedCharArray> gbColors;
+//        vtkSmartPointer<vtkPoints> gbPoints;
+//        vtkSmartPointer<vtkCellArray> gbTriangles;
+//        vtkSmartPointer<vtkPolyData> gbTrianglePolyData;
+        vtkSmartPointer<vtkPolyDataMapper> pfMapper;
+        vtkSmartPointer<vtkActor> pfActor;
+
         
         vtkSmartPointer<vtkPlane> clipPlane;
         vtkSmartPointer<vtkClipPolyData> clipper;

@@ -157,6 +157,7 @@ namespace model
                     throw std::runtime_error("ElasticDeformation: TrialFunction u initializatoin size mismatch");
                 }
             }
+            zDot.setZero(elasticDeformationFEM->z.gSize());
         }
     }
 
@@ -213,17 +214,17 @@ namespace model
                 {
                     if(microstructure.get()!=static_cast<const MicrostructureBase<dim>* const>(this))
                     {// not the ElasticDeformation physics
-                        pt += microstructure->stress(pt.P,nullptr,&pt.ele,nullptr);
+                        pt -= microstructure->stress(pt.P,nullptr,&pt.ele,nullptr);
                     }
                 }
             }
             auto tractionWF=(test(elasticDeformationFEM->u),tractionList);
             std::cout<<", directSolver"<<std::flush;
-            elasticDeformationFEM->u=directSolver.solve(-tractionWF.globalVector());
+            elasticDeformationFEM->u=directSolver.solve(tractionWF.globalVector());
             
             // Compute zDot
             std::cout<<", zDot "<<std::flush;
-            zDot.setZero(elasticDeformationFEM->z.gSize());
+//            zDot.setZero(elasticDeformationFEM->z.gSize());
             for(const auto& node : elasticDeformationFEM->z.fe().nodes())
             {
                 zDot.template segment<dim>(dim*node.gID)=this->microstructures.inelasticDisplacementRate(node.P0,&node,nullptr,nullptr);
@@ -238,7 +239,6 @@ namespace model
         
         if(uniformLoadController)
         {// already updated in solve()
-            
         }
         else
         {
@@ -279,7 +279,6 @@ namespace model
                     const std::string lab("s_"+std::to_string(i)+std::to_string(j));
                     F_labels<<lab<<"\n";
                 }
-                F_labels<<std::endl;
             }
         }
         else

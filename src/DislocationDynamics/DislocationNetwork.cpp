@@ -11,6 +11,7 @@
 #include <numbers>
 
 #include <DislocationNetwork.h>
+#include <DislocationNucleation.h>
 #include <algorithm>
 
 
@@ -28,6 +29,8 @@ namespace model
     /* init */,nodeContractor(*this)
     /* init */,timeStepper(*this)
     /* init */,stochasticForceGenerator(ddBase.simulationParameters.use_stochasticForce? new StochasticForceGenerator(ddBase.simulationParameters.traitsIO) : nullptr)
+    /* init */,bulkNucleationModel(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("bulkNucleationModel",true))
+    /* init */,surfaceNucleationModel(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("surfaceNucleationModel",true))
     /* init */,computeDDinteractions(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("computeDDinteractions",true))
     /* init */,outputQuadraturePoints(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("outputQuadraturePoints",true))
     /* init */,outputLinkingNumbers(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("outputLinkingNumbers",true))
@@ -63,19 +66,21 @@ namespace model
         _inclusions=this->microstructures.template getUniqueTypedMicrostructure<InclusionMicrostructure<dim>>();
         
         setConfiguration(configIO);
-        updateGeometry();
     }
 
-    //New Version
     template <int dim>
-    void DislocationNetwork<dim>::setConfiguration(const DDconfigIO<dim>& evl)
+    void DislocationNetwork<dim>::addConfiguration(const DDconfigIO<dim>& evl)
     {
-        DislocationNode<3>::force_count(0);
-        DislocationLoopNode<3>::force_count(0);
-        DislocationLoop<3>::force_count(0);
-        EshelbyInclusionBase<3>::force_count(0);
+        //    DislocationNode<3>::force_count(0);
+        //    DislocationLoopNode<3>::force_count(0);
+        //    DislocationLoop<3>::force_count(0);
+        //    EshelbyInclusionBase<3>::force_count(0);
+        //
+        //    this->loopLinks().clear(); // erase base network to clear current config
         
-        this->loopLinks().clear(); // erase base network to clear current config
+        const size_t initialLoopCount(DislocationLoop<3>::get_count());
+        const size_t initialNetworkNodeCount(NetworkNodeType::get_count());
+        const size_t initialLoopNodeCount(DislocationLoopNode<3>::get_count());
         
         // Create Loops
         std::deque<std::shared_ptr<LoopType>> tempLoops; // keep loops alive during setConfiguration
@@ -86,12 +91,12 @@ namespace model
             VerboseDislocationNetwork(1,"Creating DislocationLoop "<<loop.sID<<" ("<<loopNumber<<" of "<<evl.loops().size()<<"), type="<<loop.loopType<<", faulted="<<faulted<<", |b|="<<loop.B.norm()<<std::endl;);
             
             //std::cout<<"Creating DislocationLoop "<<loop.sID<<" ("<<loopNumber<<" of "<<evl.loops().size()<<"), type="<<loop.loopType<<", faulted="<<faulted<<", |b|="<<loop.B.norm()<<std::endl;
-            const size_t loopIDinFile(loop.sID);
-            LoopType::set_count(loopIDinFile);
+            const size_t loopIDtoUse(loop.sID+initialLoopCount);
+            LoopType::set_count(loopIDtoUse);
             
             GlidePlaneKey<dim> loopPlaneKey(loop.P, ddBase.poly.grain(loop.grainID)->reciprocalLatticeDirection(loop.N));
             tempLoops.push_back(this->loops().create(loop.B, ddBase.glidePlaneFactory.getFromKey(loopPlaneKey)));
-            assert(this->loops().get(loopIDinFile)->sID == loopIDinFile);
+            assert(this->loops().get(loopIDtoUse)->sID == loopIDtoUse);
             loopNumber++;
         }
         
@@ -101,10 +106,10 @@ namespace model
         for(const auto& node : evl.nodes())
         {
             VerboseDislocationNetwork(1,"Creating DislocationNode "<<node.sID<<" ("<<netNodeNumber<<" of "<<evl.nodes().size()<<")"<<std::endl;);
-            const size_t nodeIDinFile(node.sID);
-            NetworkNodeType::set_count(nodeIDinFile);
+            const size_t nodeIDtoUse(node.sID+initialNetworkNodeCount);
+            NetworkNodeType::set_count(nodeIDtoUse);
             tempNetNodes.push_back(this->networkNodes().create(node.P,node.V,node.climbVelocityScalar,node.velocityReduction));
-            assert(this->networkNodes().get(nodeIDinFile)->sID==nodeIDinFile);
+            assert(this->networkNodes().get(nodeIDtoUse)->sID==nodeIDtoUse);
             netNodeNumber++;
         }
         
@@ -114,16 +119,16 @@ namespace model
         for(const auto& node : evl.loopNodes())
         {
             VerboseDislocationNetwork(1,"Creating DislocationLoopNode "<<node.sID<<" ("<<loopNodeNumber<<" of "<<evl.loopNodes().size()<<")"<<std::endl;);
-            const size_t nodeIDinFile(node.sID);
-            LoopNodeType::set_count(nodeIDinFile);
-            const auto loop(this->loops().get(node.loopID));
-            const auto netNode(this->networkNodes().get(node.networkNodeID));
+            const size_t nodeIDtoUse(node.sID+initialLoopNodeCount);
+            LoopNodeType::set_count(nodeIDtoUse);
+            const auto loop(this->loops().get(node.loopID+initialLoopCount));
+            const auto netNode(this->networkNodes().get(node.networkNodeID+initialNetworkNodeCount));
             const auto periodicPatch(loop->periodicGlidePlane? loop->periodicGlidePlane->patches().getFromKey(node.periodicShift) : nullptr);
             const auto periodicPatchEdge((periodicPatch && node.edgeIDs.first>=0)? (node.edgeIDs.second>=0 ? std::make_pair(periodicPatch->edges()[node.edgeIDs.first],
                                                                                                                             periodicPatch->edges()[node.edgeIDs.second]):
                                                                                     std::make_pair(periodicPatch->edges()[node.edgeIDs.first],nullptr)):std::make_pair(nullptr,nullptr));
             tempLoopNodes.push_back(this->loopNodes().create(loop,netNode,node.P,periodicPatch,periodicPatchEdge));
-            assert(this->loopNodes().get(nodeIDinFile)->sID==nodeIDinFile);
+            assert(this->loopNodes().get(nodeIDtoUse)->sID==nodeIDtoUse);
             loopNodeNumber++;
         }
         
@@ -141,23 +146,117 @@ namespace model
             const auto loopFound=loopMap.find(loop.sID); // there must be an entry with key loopID in loopMap
             assert(loopFound!=loopMap.end());
             std::vector<std::shared_ptr<LoopNodeType>> loopNodes;
-            loopNodes.push_back(this->loopNodes().get(loopFound->second.begin()->first));
+            loopNodes.push_back(this->loopNodes().get(loopFound->second.begin()->first+initialLoopNodeCount));
             for(size_t k=0;k<loopFound->second.size();++k)
             {
                 const auto nodeFound=loopFound->second.find(loopNodes.back()->sID);
                 if(k<loopFound->second.size()-1)
                 {
-                    loopNodes.push_back(this->loopNodes().get(nodeFound->second));
+                    loopNodes.push_back(this->loopNodes().get(nodeFound->second+initialLoopNodeCount));
                 }
                 else
                 {
-                    assert(nodeFound->second==loopNodes[0]->sID);
+                    assert(nodeFound->second+initialLoopNodeCount==loopNodes[0]->sID);
                 }
             }
             //        std::cout<<" Inserting loop "<<loop.sID<<std::endl;
-            this->insertLoop(this->loops().get(loop.sID),loopNodes);
+            this->insertLoop(this->loops().get(loop.sID+initialLoopCount),loopNodes);
         }
         updateGeometry();
+    }
+
+    template <int dim>
+    void DislocationNetwork<dim>::setConfiguration(const DDconfigIO<dim>& evl)
+    {
+        DislocationNode<3>::force_count(0);
+        DislocationLoopNode<3>::force_count(0);
+        DislocationLoop<3>::force_count(0);
+        //        EshelbyInclusionBase<3>::force_count(0);
+        
+        this->loopLinks().clear(); // erase base network to clear current config
+        addConfiguration(evl);
+        
+        //        // Create Loops
+        //        std::deque<std::shared_ptr<LoopType>> tempLoops; // keep loops alive during setConfiguration
+        //        size_t loopNumber=1;
+        //        for(const auto& loop : evl.loops())
+        //        {
+        //            const bool faulted(ddBase.poly.grain(loop.grainID)->rationalLatticeDirection(loop.B).rat.asDouble()!=1.0? true : false);
+        //            VerboseDislocationNetwork(1,"Creating DislocationLoop "<<loop.sID<<" ("<<loopNumber<<" of "<<evl.loops().size()<<"), type="<<loop.loopType<<", faulted="<<faulted<<", |b|="<<loop.B.norm()<<std::endl;);
+        //
+        //            //std::cout<<"Creating DislocationLoop "<<loop.sID<<" ("<<loopNumber<<" of "<<evl.loops().size()<<"), type="<<loop.loopType<<", faulted="<<faulted<<", |b|="<<loop.B.norm()<<std::endl;
+        //            const size_t loopIDinFile(loop.sID);
+        //            LoopType::set_count(loopIDinFile);
+        //
+        //            GlidePlaneKey<dim> loopPlaneKey(loop.P, ddBase.poly.grain(loop.grainID)->reciprocalLatticeDirection(loop.N));
+        //            tempLoops.push_back(this->loops().create(loop.B, ddBase.glidePlaneFactory.getFromKey(loopPlaneKey)));
+        //            assert(this->loops().get(loopIDinFile)->sID == loopIDinFile);
+        //            loopNumber++;
+        //        }
+        //
+        //        // Create NetworkNodes
+        //        std::deque<std::shared_ptr<NetworkNodeType>> tempNetNodes; // keep loops alive during setConfiguration
+        //        size_t netNodeNumber=1;
+        //        for(const auto& node : evl.nodes())
+        //        {
+        //            VerboseDislocationNetwork(1,"Creating DislocationNode "<<node.sID<<" ("<<netNodeNumber<<" of "<<evl.nodes().size()<<")"<<std::endl;);
+        //            const size_t nodeIDinFile(node.sID);
+        //            NetworkNodeType::set_count(nodeIDinFile);
+        //            tempNetNodes.push_back(this->networkNodes().create(node.P,node.V,node.climbVelocityScalar,node.velocityReduction));
+        //            assert(this->networkNodes().get(nodeIDinFile)->sID==nodeIDinFile);
+        //            netNodeNumber++;
+        //        }
+        //
+        //        // Create LoopNodes
+        //        std::deque<std::shared_ptr<LoopNodeType>> tempLoopNodes; // keep loops alive during setConfiguration
+        //        size_t loopNodeNumber=1;
+        //        for(const auto& node : evl.loopNodes())
+        //        {
+        //            VerboseDislocationNetwork(1,"Creating DislocationLoopNode "<<node.sID<<" ("<<loopNodeNumber<<" of "<<evl.loopNodes().size()<<")"<<std::endl;);
+        //            const size_t nodeIDinFile(node.sID);
+        //            LoopNodeType::set_count(nodeIDinFile);
+        //            const auto loop(this->loops().get(node.loopID));
+        //            const auto netNode(this->networkNodes().get(node.networkNodeID));
+        //            const auto periodicPatch(loop->periodicGlidePlane? loop->periodicGlidePlane->patches().getFromKey(node.periodicShift) : nullptr);
+        //            const auto periodicPatchEdge((periodicPatch && node.edgeIDs.first>=0)? (node.edgeIDs.second>=0 ? std::make_pair(periodicPatch->edges()[node.edgeIDs.first],
+        //                                                                                                                            periodicPatch->edges()[node.edgeIDs.second]):
+        //                                                                                    std::make_pair(periodicPatch->edges()[node.edgeIDs.first],nullptr)):std::make_pair(nullptr,nullptr));
+        //            tempLoopNodes.push_back(this->loopNodes().create(loop,netNode,node.P,periodicPatch,periodicPatchEdge));
+        //            assert(this->loopNodes().get(nodeIDinFile)->sID==nodeIDinFile);
+        //            loopNodeNumber++;
+        //        }
+        //
+        //        // Insert Loops
+        //        std::map<size_t,std::map<size_t,size_t>> loopMap;
+        //        for(const auto& looplink : evl.loopLinks())
+        //        {// Collect LoopLinks by loop IDs
+        //            loopMap[looplink.loopID].emplace(looplink.sourceID,looplink.sinkID);
+        //        }
+        //        assert(loopMap.size()==evl.loops().size());
+        //
+        //        for(const auto& loop : evl.loops())
+        //        {// for each loop in the DDconfigIO<dim> object
+        //
+        //            const auto loopFound=loopMap.find(loop.sID); // there must be an entry with key loopID in loopMap
+        //            assert(loopFound!=loopMap.end());
+        //            std::vector<std::shared_ptr<LoopNodeType>> loopNodes;
+        //            loopNodes.push_back(this->loopNodes().get(loopFound->second.begin()->first));
+        //            for(size_t k=0;k<loopFound->second.size();++k)
+        //            {
+        //                const auto nodeFound=loopFound->second.find(loopNodes.back()->sID);
+        //                if(k<loopFound->second.size()-1)
+        //                {
+        //                    loopNodes.push_back(this->loopNodes().get(nodeFound->second));
+        //                }
+        //                else
+        //                {
+        //                    assert(nodeFound->second==loopNodes[0]->sID);
+        //                }
+        //            }
+        //            //        std::cout<<" Inserting loop "<<loop.sID<<std::endl;
+        //            this->insertLoop(this->loops().get(loop.sID),loopNodes);
+        //        }
+        //        updateGeometry();
     }
 
     template <int dim>
@@ -686,7 +785,7 @@ namespace model
     {/*! Moves all nodes in the DislocationNetwork using the stored glide velocity and current dt
       */
         const auto t0= std::chrono::system_clock::now();
-        std::cout<<"Moving DislocationNodes by glide (dt="<<dt_in<< ")... "<<std::flush;
+        std::cout<<"Moving DislocationNodes (dt="<<dt_in<< ")... "<<std::flush;
         danglingBoundaryLoopNodes.clear();
         for(auto& node : this->networkNodes())
         {
@@ -718,6 +817,11 @@ namespace model
         
         networkRemesher.remesh(runID);
         //        updateVirtualBoundaryLoops();
+        
+        DislocationNucleation<dim> nucleator(*this);
+        nucleator.bulkNucleate(bulkNucleationModel);
+        nucleator.surfaceNucleate(surfaceNucleationModel);
+        
     }
 
     template <int dim>
@@ -839,104 +943,107 @@ namespace model
         for (const auto& ln : this->loopNodes())
         {
             const auto sharedLNptr(ln.second.lock());
-            if (sharedLNptr->periodicPlaneEdge.first)
-            {//Node on a boundary: possible junction is between sharedLNptr->periodicPrev() and sharedLNptr->periodicNext()
-                if (sharedLNptr->networkNode->loopNodes().size()>1)
-                {//junction node
-                    const auto loopsThis (sharedLNptr->networkNode->loopIDs());
-                    
-                    const LoopNodeType *pPrev(sharedLNptr->periodicPrev());
-                    const LoopNodeType *pNext(sharedLNptr->periodicNext());
-                    
-                    
-                    const auto pPrevNetwork (pPrev->networkNode);
-                    const auto pNextNetwork (pNext->networkNode);
-                    
-                    assert(pPrevNetwork!=nullptr);
-                    assert(pNextNetwork!=nullptr);
-                    
-                    const auto loopspPrev(pPrevNetwork->loopIDs());
-                    const auto loopspNext(pNextNetwork->loopIDs());
-                    
-                    std::set<size_t> tempPrev;
-                    std::set<size_t> tempNext;
-                    std::set_intersection(loopspPrev.begin(), loopspPrev.end(), loopsThis.begin(), loopsThis.end(), std::inserter(tempPrev, tempPrev.begin()));
-                    std::set_intersection(loopsThis.begin(), loopsThis.end(), loopspNext.begin(), loopspNext.end(), std::inserter(tempNext, tempNext.begin()));
-                    
-                    //                    if (tempPrev!=tempNext)
-                    //                    {
-                    //                        std::cout<<"For bnd network node"<<sharedLNptr->networkNode->sID<<" loops are "<<std::flush;
-                    //                        for (const auto& loop : loopsThis)
-                    //                        {
-                    //                            std::cout<<loop<<", ";
-                    //                        }
-                    //                        std::cout<<std::endl;
-                    //
-                    //                        std::cout<<"For prev network node"<<pPrevNetwork->sID<<" loops are "<<std::flush;
-                    //                        for (const auto& loop : loopspPrev)
-                    //                        {
-                    //                            std::cout<<loop<<", ";
-                    //                        }
-                    //                        std::cout<<std::endl;
-                    //
-                    //                        std::cout<<"For next network node"<<pNextNetwork->sID<<" loops are "<<std::flush;
-                    //                        for (const auto& loop : loopspNext)
-                    //                        {
-                    //                            std::cout<<loop<<", ";
-                    //                        }
-                    //                        std::cout<<std::endl;
-                    //                        throw std::runtime_error("BND node must have the same loops as the common loops between the internal nodes");
-                    //                    }
-                    //                    else
-                    //                    {
-                    //                        if (pPrevNetwork->sID < pNextNetwork->sID)
-                    //                        {
-                    //                            networkNodeLoopMap.emplace(std::make_pair(pPrevNetwork, pNextNetwork), tempPrev);
-                    //                        }
-                    //                        else
-                    //                        {
-                    //                            networkNodeLoopMap.emplace(std::make_pair(pNextNetwork, pPrevNetwork), tempPrev);
-                    //                        }
-                    //                    }
-                    
-                    std::set<size_t> tempLoops;
-                    std::set_intersection(tempPrev.begin(), tempPrev.end(), tempNext.begin(), tempNext.end(), std::inserter(tempLoops, tempLoops.begin()));
-                    if(tempLoops.size())
-                    {
-                        if (pPrevNetwork->sID < pNextNetwork->sID)
+            if(sharedLNptr->periodicNext() && sharedLNptr->periodicPrev())
+            {
+                if (sharedLNptr->periodicPlaneEdge.first)
+                {//Node on a boundary: possible junction is between sharedLNptr->periodicPrev() and sharedLNptr->periodicNext()
+                    if (sharedLNptr->networkNode->loopNodes().size()>1)
+                    {//junction node
+                        const auto loopsThis (sharedLNptr->networkNode->loopIDs());
+                        
+                        const LoopNodeType *pPrev(sharedLNptr->periodicPrev());
+                        const LoopNodeType *pNext(sharedLNptr->periodicNext());
+                        
+                        
+                        const auto pPrevNetwork (pPrev->networkNode);
+                        const auto pNextNetwork (pNext->networkNode);
+                        
+                        assert(pPrevNetwork!=nullptr);
+                        assert(pNextNetwork!=nullptr);
+                        
+                        const auto loopspPrev(pPrevNetwork->loopIDs());
+                        const auto loopspNext(pNextNetwork->loopIDs());
+                        
+                        std::set<size_t> tempPrev;
+                        std::set<size_t> tempNext;
+                        std::set_intersection(loopspPrev.begin(), loopspPrev.end(), loopsThis.begin(), loopsThis.end(), std::inserter(tempPrev, tempPrev.begin()));
+                        std::set_intersection(loopsThis.begin(), loopsThis.end(), loopspNext.begin(), loopspNext.end(), std::inserter(tempNext, tempNext.begin()));
+                        
+                        //                    if (tempPrev!=tempNext)
+                        //                    {
+                        //                        std::cout<<"For bnd network node"<<sharedLNptr->networkNode->sID<<" loops are "<<std::flush;
+                        //                        for (const auto& loop : loopsThis)
+                        //                        {
+                        //                            std::cout<<loop<<", ";
+                        //                        }
+                        //                        std::cout<<std::endl;
+                        //
+                        //                        std::cout<<"For prev network node"<<pPrevNetwork->sID<<" loops are "<<std::flush;
+                        //                        for (const auto& loop : loopspPrev)
+                        //                        {
+                        //                            std::cout<<loop<<", ";
+                        //                        }
+                        //                        std::cout<<std::endl;
+                        //
+                        //                        std::cout<<"For next network node"<<pNextNetwork->sID<<" loops are "<<std::flush;
+                        //                        for (const auto& loop : loopspNext)
+                        //                        {
+                        //                            std::cout<<loop<<", ";
+                        //                        }
+                        //                        std::cout<<std::endl;
+                        //                        throw std::runtime_error("BND node must have the same loops as the common loops between the internal nodes");
+                        //                    }
+                        //                    else
+                        //                    {
+                        //                        if (pPrevNetwork->sID < pNextNetwork->sID)
+                        //                        {
+                        //                            networkNodeLoopMap.emplace(std::make_pair(pPrevNetwork, pNextNetwork), tempPrev);
+                        //                        }
+                        //                        else
+                        //                        {
+                        //                            networkNodeLoopMap.emplace(std::make_pair(pNextNetwork, pPrevNetwork), tempPrev);
+                        //                        }
+                        //                    }
+                        
+                        std::set<size_t> tempLoops;
+                        std::set_intersection(tempPrev.begin(), tempPrev.end(), tempNext.begin(), tempNext.end(), std::inserter(tempLoops, tempLoops.begin()));
+                        if(tempLoops.size())
                         {
-                            networkNodeLoopMap.emplace(std::make_pair(pPrevNetwork, pNextNetwork), tempLoops);
-                        }
-                        else
-                        {
-                            networkNodeLoopMap.emplace(std::make_pair(pNextNetwork, pPrevNetwork), tempLoops);
-                        }
-                    }
-                    
-                }
-            }
-            else
-            {//Node not on a boundary: possible junction is between sharedLNptr and sharedLNptr->periodicNext()
-                if (sharedLNptr->networkNode->loopNodes().size()>1)
-                {// a junction node
-                    if (sharedLNptr->boundaryNext().size()==0 && sharedLNptr->periodicNext()->networkNode->loopNodes().size()>1)
-                    {
-                        if (sharedLNptr->periodicPlanePatch()!=sharedLNptr->periodicNext()->periodicPlanePatch())
-                        {// Junction is across boundary
-                            const auto netLink (sharedLNptr->next.second->networkLink());
-                            if(netLink)
+                            if (pPrevNetwork->sID < pNextNetwork->sID)
                             {
-                                std::set<size_t> netLinkLoopIDs (netLink->loopIDs());
-                                if (netLink->loopLinks().size()>=2)
+                                networkNodeLoopMap.emplace(std::make_pair(pPrevNetwork, pNextNetwork), tempLoops);
+                            }
+                            else
+                            {
+                                networkNodeLoopMap.emplace(std::make_pair(pNextNetwork, pPrevNetwork), tempLoops);
+                            }
+                        }
+                        
+                    }
+                }
+                else
+                {//Node not on a boundary: possible junction is between sharedLNptr and sharedLNptr->periodicNext()
+                    if (sharedLNptr->networkNode->loopNodes().size()>1)
+                    {// a junction node
+                        if (sharedLNptr->boundaryNext().size()==0 && sharedLNptr->periodicNext()->networkNode->loopNodes().size()>1)
+                        {
+                            if (sharedLNptr->periodicPlanePatch()!=sharedLNptr->periodicNext()->periodicPlanePatch())
+                            {// Junction is across boundary
+                                const auto netLink (sharedLNptr->next.second->networkLink());
+                                if(netLink)
                                 {
-                                    //a junction node moving out
-                                    if (sharedLNptr->networkNode->sID < sharedLNptr->periodicNext()->networkNode->sID)
+                                    std::set<size_t> netLinkLoopIDs (netLink->loopIDs());
+                                    if (netLink->loopLinks().size()>=2)
                                     {
-                                        networkNodeLoopMap.emplace(std::make_pair(sharedLNptr->networkNode, sharedLNptr->periodicNext()->networkNode), netLinkLoopIDs);
-                                    }
-                                    else
-                                    {
-                                        networkNodeLoopMap.emplace(std::make_pair(sharedLNptr->periodicNext()->networkNode,sharedLNptr->networkNode), netLinkLoopIDs);
+                                        //a junction node moving out
+                                        if (sharedLNptr->networkNode->sID < sharedLNptr->periodicNext()->networkNode->sID)
+                                        {
+                                            networkNodeLoopMap.emplace(std::make_pair(sharedLNptr->networkNode, sharedLNptr->periodicNext()->networkNode), netLinkLoopIDs);
+                                        }
+                                        else
+                                        {
+                                            networkNodeLoopMap.emplace(std::make_pair(sharedLNptr->periodicNext()->networkNode,sharedLNptr->networkNode), netLinkLoopIDs);
+                                        }
                                     }
                                 }
                             }
@@ -1431,6 +1538,5 @@ namespace model
     int DislocationNetwork<dim>::verboseDislocationNetwork=0;
 
     template class DislocationNetwork<3>;
-
 }
 #endif

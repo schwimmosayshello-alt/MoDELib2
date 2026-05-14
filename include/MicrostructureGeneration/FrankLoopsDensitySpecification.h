@@ -24,6 +24,9 @@ namespace model
         double radiusDistributionMean;
         double radiusDistributionStd;
         bool areVacancyLoops;
+        std::vector<int> allowedGrainIDs;
+        std::vector<int> allowedPlaneIDs;
+
         
         FrankLoopsDensitySpecification();
         FrankLoopsDensitySpecification(const std::string& fileName);

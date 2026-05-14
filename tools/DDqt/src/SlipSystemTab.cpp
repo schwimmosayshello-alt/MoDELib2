@@ -159,8 +159,6 @@ void SlipSystemTab::setFamilyColor()
             {
                 double dclr[3];
                 familyLut->GetColor(fID, dclr);
-                std::cout<<dclr[0]<<","<<dclr[1]<<","<<dclr[2]<<std::endl;
-
                 ssIter->second->setStyleSheet(QString::fromStdString("background-color: rgb("+std::to_string(int(dclr[0]*255))+","
                                                                     /*                    */+std::to_string(int(dclr[1]*255))+","
                                                                     /*                    */+std::to_string(int(dclr[2]*255))+");"));

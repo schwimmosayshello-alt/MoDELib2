@@ -127,11 +127,11 @@ namespace model
                 std::cout<<"    face "<<face.second->sID<<": size="<<face.second->size()<<",hullPts="<<face.second->convexHull().size()<<", outNormal "<<face.second->outNormal().transpose()<<std::endl;
                 bndFaceSimplexSum+=face.second->size();
             }
-            std::cout<<"    parallel faces:"<<std::endl;
-            for(const auto& pair : region.second->parallelFaces())
-            {
-                std::cout<<"      "<<pair.first<<"<->"<<pair.second<<std::endl;
-            }
+//            std::cout<<"    parallel faces:"<<std::endl;
+//            for(const auto& pair : region.second->parallelFaces())
+//            {
+//                std::cout<<"      "<<pair.first<<"<->"<<pair.second<<std::endl;
+//            }
         }
         
         size_t rgnBndFaceSimplexSum=0;

@@ -35,6 +35,10 @@ typename SingleCrystalSelector<dim>::MatrixDim SingleCrystalSelector<dim>::latti
     {
         return HEXlattice<dim>::getLatticeBasis();
     }
+    else if(mat.crystalStructure=="CubicFluorite")
+    {
+        return CubicFluoriteCrystal<dim>::getLatticeBasis();
+    }
     else
     {
         throw std::runtime_error("SingleCrystalSelector::latticeBasis: unknown crystal structure "+mat.crystalStructure);
@@ -56,6 +60,10 @@ typename SingleCrystalSelector<dim>::PlaneNormalContainerType SingleCrystalSelec
     else if(mat.crystalStructure=="HEX")
     {
         return HEXlattice<dim>::planeNormals(mat,lat);
+    }
+    else if(mat.crystalStructure=="CubicFluorite")
+    {
+        return CubicFluoriteCrystal<dim>::planeNormals(mat,lat);
     }
     else
     {
@@ -79,6 +87,10 @@ typename SingleCrystalSelector<dim>::SlipSystemContainerType SingleCrystalSelect
     {
         return HEXlattice<dim>::slipSystems(mat,lat,pnc);
     }
+    else if(mat.crystalStructure=="CubicFluorite")
+    {
+        return CubicFluoriteCrystal<dim>::slipSystems(mat,lat,pnc);
+    }
     else
     {
         throw std::runtime_error("SingleCrystalSelector::slipSystems: unknown crystal structure "+mat.crystalStructure);
@@ -100,6 +112,10 @@ typename SingleCrystalSelector<dim>::SecondPhaseContainerType SingleCrystalSelec
     else if(mat.crystalStructure=="HEX")
     {
         return HEXlattice<dim>::secondPhases(mat,lat,pnc);
+    }
+    else if(mat.crystalStructure=="CubicFluorite")
+    {
+        return CubicFluoriteCrystal<dim>::secondPhases(mat,lat,pnc);
     }
     else
     {

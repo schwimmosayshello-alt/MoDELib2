@@ -13,7 +13,7 @@
 #include <assert.h>
 #include <LatticeModule.h>
 #include <GlidePlaneBase.h>
-#include <DislocationMobilityBase.h>
+#include <DislocationMobility.h>
 #include <GammaSurface.h>
 #include <GlidePlaneNoise.h>
 
@@ -31,12 +31,12 @@ namespace model
         const VectorDim unitSlip;
         const VectorDim unitSlipFull;
         const MatrixDim G2Lfull;
-        const std::shared_ptr<DislocationMobilityBase> mobility;
+        const std::shared_ptr<DislocationMobility> mobility;
         const std::shared_ptr<GlidePlaneNoise> planeNoise;
 
         SlipSystem(const GlidePlaneBase& n_in,
                    const RationalLatticeDirection<3>& slip_in,
-                   const std::shared_ptr<DislocationMobilityBase>& mobility_in,
+                   const std::shared_ptr<DislocationMobility>& mobility_in,
                    const std::shared_ptr<GlidePlaneNoise>& planeNoise_in);
         
         bool isPartial() const;
@@ -45,6 +45,8 @@ namespace model
         VectorDim localToGlobal(const Eigen::Matrix<double,2,1>& x) const;
         std::tuple<Eigen::Matrix<double,3,3>,double,double> gridInterp(const VectorDim& x) const ;
         std::tuple<Eigen::Matrix<double,3,3>,double,double> gridVal(const Eigen::Array<int,2,1>& idx) const;
+        double velocity(const MatrixDim& S,const VectorDim& xi,const double& T) const ;
+
     };
 }
 #endif

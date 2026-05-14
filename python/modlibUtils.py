@@ -41,6 +41,8 @@ class PolyCrystalFile(dict):
             self.A=np.array([[-1.,1.,1.],[1.,-1.,1.],[1.,1.,-1.]])/np.sqrt(3.0)
         elif self.crystalStructure == 'HEX':
             self.A=np.array([[1.,0.5,0.],[0.,0.5*np.sqrt(3.),0.],[0.,0.,np.sqrt(8.0/3.0)]])
+        elif self.crystalStructure == 'CubicFluorite':
+            self.A=np.array([[0.,1.,1.],[1.,0.,1.],[1.,1.,0.]])/np.sqrt(2.0)
         else:
             raise Exception("Unkonwn crystalStructure "+self.crystalStructure)
         self.invA=np.linalg.inv(self.A)
@@ -54,10 +56,12 @@ class PolyCrystalFile(dict):
             elif self.crystalStructure == 'FCC':
                 self.grain1globalX1=np.array([0,1,1]) # overwrite
                 self.grain1globalX3=np.array([-1,1,-1])  # overwrite
+            elif self.crystalStructure == 'CubicFluorite':
+                self.grain1globalX1=np.array([0,1,1]) # overwrite
+                self.grain1globalX3=np.array([-1,1,-1])  # overwrite
             elif self.crystalStructure == 'HEX':
                 self.grain1globalX1=np.array([1,0,0]) # overwrite
                 self.grain1globalX3=np.array([0,0,1])  # overwrite
-
             else:
                 raise Exception("Unkonwn crystalStructure "+self.crystalStructure)
         

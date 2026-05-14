@@ -2,6 +2,7 @@
 
 find_package(Qt6 COMPONENTS Widgets OpenGL OpenGLWidgets REQUIRED)
 message (STATUS "Qt6_VERSION: ${Qt6_VERSION}")
+message (STATUS "Qt6: ${Qt6}")
 if (NOT Qt6_FOUND)
   message("Skipping DDqt: ${Qt6_NOT_FOUND_MESSAGE}")
   return()

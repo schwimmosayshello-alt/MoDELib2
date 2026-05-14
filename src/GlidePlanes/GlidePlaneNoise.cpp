@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <GlidePlaneNoise.h>
+#include <StrUtilities.h>
 
 namespace model
 {
@@ -20,13 +21,13 @@ namespace model
         const auto noiseFiles(TextFileParser(mat.materialFile).readStringVector("glidePlaneNoise"));
         for(const auto& pair : noiseFiles)
         {
-            const auto noiseFileString(TextFileParser::removeSpaces(pair.first));
+            const auto noiseFileString(StrUtilities::removeSpaces(pair.first));
             if(noiseFileString!="none" && noiseFileString!="None")
             {
                 const std::string noiseFileName(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+noiseFileString);
                 TextFileParser parser(noiseFileName);
-                const std::string type(TextFileParser::removeSpaces(parser.readString("type",true)));
-                const std::string  tag(TextFileParser::removeSpaces(parser.readString("tag",true)));
+                const std::string type(StrUtilities::removeSpaces(parser.readString("type",true)));
+                const std::string  tag(StrUtilities::removeSpaces(parser.readString("tag",true)));
                 const int seed(parser.readScalar<int>("seed",true));
                 const Eigen::Matrix<int,1,3> gridSize(parser.readMatrix<int,1,3>("gridSize",true));
                 const Eigen::Matrix<double,1,3> gridSpacing(parser.readMatrix<double,1,3>("gridSpacing_SI",true)/mat.b_SI);
@@ -48,8 +49,8 @@ namespace model
                     const double a_Cai(parser.readScalar<double>("a_cai_SI",true)/mat.b_SI);
 
                     // relative paths for correlation vtk files (easier to make everything self contained)
-                    const std::string correlationFile_xz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_xz",true)));
-                    const std::string correlationFile_yz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile_yz",true)));
+                    const std::string correlationFile_xz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+StrUtilities::removeSpaces(parser.readString("correlationFile_xz",true)));
+                    const std::string correlationFile_yz(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+StrUtilities::removeSpaces(parser.readString("correlationFile_yz",true)));
 
                     const auto success(solidSolutionNoise().emplace(tag,new MDSolidSolutionNoise(mat,tag,correlationFile_xz,correlationFile_yz,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity(),a_Cai)));
                     if(!success.second)
@@ -60,7 +61,7 @@ namespace model
                 if(type=="MDStackingFaultNoise")
                 {
                     // relative paths for correlation vtk files (easier to make everything self contained)
-                    const std::string correlationFile_stackingFault(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+TextFileParser::removeSpaces(parser.readString("correlationFile",true)));
+                    const std::string correlationFile_stackingFault(std::filesystem::path(mat.materialFile).parent_path().string()+"/"+StrUtilities::removeSpaces(parser.readString("correlationFile",true)));
 
                     const auto success(stackingFaultNoise().emplace(tag,new MDStackingFaultNoise(mat,tag,correlationFile_stackingFault,seed,gridSize,gridSpacing,Eigen::Matrix<double,2,2>::Identity())));
 

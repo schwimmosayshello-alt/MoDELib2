@@ -49,6 +49,8 @@
 #include <vtkTextProperty.h>
 #include <random>
 #include <algorithm>
+#include <vtkPolygon.h>
+#include <vtkTriangleFilter.h>
 
 #include <TextFileParser.h>
 
@@ -64,6 +66,7 @@ namespace model
     /* init */,showExternalFaceIDs(new QCheckBox(this))
 //        /* init */,showMeshLabel(new QLabel("show mesh"))
         /* init */,showFaceBoundaries(new QCheckBox(this))
+/* init */,showPeriodicFaces(new QCheckBox(this))
 //        /* init */,showFaceBoundariesLabel(new QLabel("show face edges"))
 //        /* init */,showGrainColors(new QCheckBox(this))
 //        /* init */,showGrainColorsLabel(new QLabel("show grain colors"))
@@ -96,6 +99,8 @@ namespace model
         /* init */,gbTrianglePolyData(vtkSmartPointer<vtkPolyData>::New())
         /* init */,gbMapper(vtkSmartPointer<vtkPolyDataMapper>::New())
         /* init */,gbActor(vtkSmartPointer<vtkActor>::New())
+        /* init */,pfMapper(vtkSmartPointer<vtkPolyDataMapper>::New())
+        /* init */,pfActor(vtkSmartPointer<vtkActor>::New())
         /* init */,clipPlane(vtkSmartPointer<vtkPlane>::New())
         /* init */,clipper(vtkSmartPointer<vtkClipPolyData>::New())
         /* init */,clippedPolyData(vtkSmartPointer<vtkPolyData>::New())
@@ -117,6 +122,12 @@ namespace model
             showFaceBoundaries->setChecked(true);
             showFaceBoundaries->setText("Face Edges");
             faceActor->SetVisibility(true);
+            
+            showPeriodicFaces->setChecked(false);
+            showPeriodicFaces->setText("Periodic Faces");
+            pfActor->SetVisibility(false);
+
+            
             showMesh->setChecked(false);
             showExternalFaceIDs->setText("External face IDs");
             showExternalFaceIDs->setChecked(false);
@@ -191,6 +202,7 @@ namespace model
             mainLayout->addWidget(showExternalFaceIDs,0,1,1,1);
 //            mainLayout->addWidget(showMeshLabel,0,1,1,1);
             mainLayout->addWidget(showFaceBoundaries,1,0,1,1);
+            mainLayout->addWidget(showPeriodicFaces,1,1,1,1);
 //            mainLayout->addWidget(showFaceBoundariesLabel,1,1,1,1);
 //            mainLayout->addWidget(showGrainColors,2,0,1,1);
   //          mainLayout->addWidget(showGrainColorsLabel,2,1,1,1);
@@ -225,9 +237,10 @@ namespace model
             connect(showAxes,SIGNAL(stateChanged(int)), this, SLOT(modify()));
             connect(showPeriodicityVectors,SIGNAL(stateChanged(int)), this, SLOT(modify()));
             connect(showExternalFaceIDs,SIGNAL(stateChanged(int)), this, SLOT(modify()));
+            connect(showPeriodicFaces,SIGNAL(stateChanged(int)), this, SLOT(modify()));
 
             
-             
+            
             
             
 
@@ -423,6 +436,89 @@ namespace model
             gbActor->GetProperty()->SetOpacity(0.2);
             gbActor->GetProperty()->SetColor(0.0,0.5,0.5);
             
+            
+            std::set<std::pair<const PlanarMeshFace<3>*,const PlanarMeshFace<3>*>> periodicFaceSet;
+            for(const auto& region : mesh.regions())
+            {
+                for(const auto& face : region.second->faces())
+                {
+                    if(face.second->periodicFacePair.second)
+                    {// a periodic face exists
+                        if(face.second->sID<face.second->periodicFacePair.second->sID)
+                        {
+                            periodicFaceSet.emplace(face.second.get(),face.second->periodicFacePair.second);
+                        }
+                        else
+                        {
+                            periodicFaceSet.emplace(face.second->periodicFacePair.second,face.second.get());
+                        }
+                    }
+                }
+            }
+            
+            vtkSmartPointer<vtkUnsignedCharArray> pfColors(vtkSmartPointer<vtkUnsignedCharArray>::New());
+            vtkSmartPointer<vtkPoints> pfPoints(vtkSmartPointer<vtkPoints>::New());
+            vtkSmartPointer<vtkCellArray> pfCells(vtkSmartPointer<vtkCellArray>::New());
+            vtkSmartPointer<vtkLookupTable> pfLut(vtkSmartPointer<vtkLookupTable>::New());
+            pfLut->SetTableRange(0, periodicFaceSet.size());
+            pfLut->Build();
+
+            size_t pfPointID(0);
+            size_t pfID(0);
+            for(const auto& facePair : periodicFaceSet)
+            {
+                double dclr[3];
+                pfLut->GetColor(pfID, dclr);
+                std::cout<<"dclr"<<std::endl;
+                std::cout<<dclr[0]<<","<<dclr[1]<<","<<dclr[2]<<std::endl;
+
+                vtkNew<vtkPolygon> polygon1;
+                for(const auto& pt : facePair.first->convexHull())
+                {
+                    pfPoints->InsertNextPoint(pt->P0.data());
+                    polygon1->GetPointIds()->InsertNextId(pfPointID);
+                    pfPointID++;
+                }
+                pfCells->InsertNextCell(polygon1);
+                pfColors->InsertNextTuple3(int(dclr[0]*255.0),int(dclr[1]*255.0),int(dclr[2]*255.0)); // use this to assig color to each vertex
+
+                vtkNew<vtkPolygon> polygon2;
+                for(const auto& pt : facePair.second->convexHull())
+                {
+                    pfPoints->InsertNextPoint(pt->P0.data());
+                    polygon2->GetPointIds()->InsertNextId(pfPointID);
+                    pfPointID++;
+                }
+                pfCells->InsertNextCell(polygon2);
+                pfColors->InsertNextTuple3(int(dclr[0]*255.0),int(dclr[1]*255.0),int(dclr[2]*255.0)); // use this to assig color to each vertex
+
+                pfID++;
+            }
+            
+            std::cout<<"periodicFaceSet.size()="<<periodicFaceSet.size()<<std::endl;
+            
+            vtkSmartPointer<vtkPolyData> pfPolyData(vtkSmartPointer<vtkPolyData>::New());
+//            vtkSmartPointer<vtkPolyDataMapper> pfMapper(vtkSmartPointer<vtkPolyDataMapper>::New());
+
+            pfPolyData->SetPoints(pfPoints);
+            pfPolyData->SetPolys(pfCells);
+//            pfPolyData->GetCellData()->SetScalars(pfColors);
+            pfPolyData->GetCellData()->SetVectors(pfColors);
+
+            pfPolyData->Modified();
+            pfMapper->SetScalarModeToUseCellData();
+//            vtkNew<vtkTriangleFilter> pfFilter;
+//            pfFilter->SetInputData(pfPolyData);
+//            pfFilter->Update();
+            pfMapper->SetInputData(pfPolyData);
+//            pfMapper->SetInputData(pfFilter->GetOutput());
+            pfActor->SetMapper(pfMapper);
+            pfActor->GetProperty()->SetOpacity(0.5);
+
+            
+//            THIS IS NOT SHOWING, MAYBE STORE MAPPER?
+            
+
             clipper->SetInputData(gbTrianglePolyData);
             clipper->SetClipFunction(clipPlane);
             clipper->SetValue(0);
@@ -519,6 +615,7 @@ namespace model
 
             
             renderer->AddActor(gbActor);
+            renderer->AddActor(pfActor);
             renderer->AddActor(clipActor); // enable to clip grain boundaries
             renderer->AddActor(cubeAxesActor);
             renderer->AddActor(labelActor);
@@ -559,6 +656,8 @@ namespace model
             sliderRegionBoundaries->setEnabled(showRegionBoundaries->isChecked());
             gbActor->GetProperty()->SetOpacity(sliderRegionBoundaries->value()/10.0);
             clipActor->SetVisibility(showClipPlane->isChecked());
+            pfActor->SetVisibility(showPeriodicFaces->isChecked());
+
             sliderClipPlane->setEnabled(showClipPlane->isChecked());
             clipActor->GetProperty()->SetOpacity(sliderClipPlane->value()/10.0);
 

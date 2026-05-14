@@ -114,6 +114,26 @@ namespace model
             throw std::runtime_error("Mesh is empty");
         }
         
+        for(const auto& region : mesh.regions())
+        {
+            for(const auto& face : region.second->faces())
+            {
+                if(face.second->isExternal() && face.second->periodicFacePair.second)
+                {
+                    const Eigen::Matrix<double,Eigen::Dynamic,1> pd(periodicLatticeReciprocalBasis.transpose()*face.second->periodicFacePair.first);
+                    const Eigen::Matrix<double,Eigen::Dynamic,1> pn(pd.array().round());
+                    if((pd-pn).norm()>FLT_EPSILON*pd.norm())
+                    {
+                        std::cout<<"region="<<region.second->regionID<<std::endl;
+                        std::cout<<"face="<<face.second->sID<<std::endl;
+                        std::cout<<"pd="<<pd.transpose()<<std::endl;
+                        std::cout<<"pn="<<pn.transpose()<<std::endl;
+                        throw std::runtime_error("Face shift must be an intiger combination of the periodicity vectors");
+                    }
+                }
+            }
+        }
+        
         std::cout<<"isPeriodicDomain="<<isPeriodicDomain<<std::endl;
         std::cout<<"periodicLatticeBasis="<<periodicLatticeBasis<<std::endl;
         std::cout<<"periodicLatticeReciprocalBasis="<<periodicLatticeReciprocalBasis<<std::endl;

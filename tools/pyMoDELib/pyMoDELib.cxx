@@ -27,9 +27,13 @@
 #include <memory>
 #include <map>
 
+#include <InterpolantBase.h>
+#include <LagrangeInterpolant.h>
+#include <LinearInterpolant.h>
 #include <DefectiveCrystalParameters.h>
 #include <SimplicialMesh.h>
 #include <PolycrystallineMaterialBase.h>
+#include <StressStraight.h>
 #include <BCClattice.h>
 #include <FCClattice.h>
 #include <HEXlattice.h>
@@ -39,8 +43,14 @@
 #include <DislocationDynamicsBase.h>
 #include <DefectiveCrystal.h>
 #include <MicrostructureGenerator.h>
-#include <DislocationMobilityBCC.h>
+#include <DislocationMobilitySelector.h>
+#include <DislocationMobilityViscousDrag.h>
+#include <DislocationMobilityKinkPair.h>
+#include <DislocationMobilityEdgeScrew.h>
 #include <DislocationMobilityPy.h>
+//#include <DislocationMobilityBCC.h>
+//#include <DislocationMobilityFCC.h>
+//#include <DislocationMobilityPy.h>
 #include <GlidePlaneNoiseBase.h>
 #include <PeriodicLatticeInterpolant.h>
 
@@ -77,7 +87,29 @@ PYBIND11_MAKE_OPAQUE(typename TypeTraits<SingleCrystalBase<3>>::SecondPhaseConta
 PYBIND11_MODULE(pyMoDELib,m)
 {
     namespace py=pybind11;
-
+    
+    
+    py::class_<ExtrapolationMethod>(m, "ExtrapolationMethod")
+        .def(py::init<>())
+        .def(py::init<const int&,const double&>())
+        .def_readwrite("type", &ExtrapolationMethod::type)
+        .def_readwrite("period", &ExtrapolationMethod::period)
+    ;
+    
+    py::class_<InterpolantBase>(m, "InterpolantBase")
+      .def("f", &InterpolantBase::f)
+//      .def("atPeriodic", &InterpolantBase::atPeriodic)
+      .def_readwrite("extrapolation", &InterpolantBase::extrapolation)
+    ;
+    
+    py::class_<LagrangeInterpolant,InterpolantBase>(m, "LagrangeInterpolant")
+      .def(py::init<const InterpolantBase::MatrixType&,const ExtrapolationMethod&>())
+    ;
+    
+    py::class_<LinearInterpolant,InterpolantBase>(m, "LinearInterpolant")
+      .def(py::init<const InterpolantBase::MatrixType&,const ExtrapolationMethod&>())
+    ;
+    
     py::class_<GlidePlaneNoiseBase<1>, std::shared_ptr<GlidePlaneNoiseBase<1>>>(m, "GlidePlaneNoiseBase1")
       .def(py::init<const std::string&, const int&,
                     const NoiseTraitsBase::GridSizeType&,
@@ -194,6 +226,7 @@ PYBIND11_MODULE(pyMoDELib,m)
     py::class_<PolycrystallineMaterialBase>(m,"PolycrystallineMaterialBase")
         .def(py::init<const std::string&,const double&>())
         .def_readonly("T", &PolycrystallineMaterialBase::T)
+        .def_readonly("Tm", &PolycrystallineMaterialBase::Tm)
         .def_readonly("mu_SI", &PolycrystallineMaterialBase::mu_SI)
         .def_readonly("nu", &PolycrystallineMaterialBase::nu)
         .def_readonly("rho_SI", &PolycrystallineMaterialBase::rho_SI)
@@ -201,7 +234,16 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def_readonly("b_SI", &PolycrystallineMaterialBase::b_SI)
         .def_readonly("materialName", &PolycrystallineMaterialBase::materialName)
         .def_readonly("materialFile", &PolycrystallineMaterialBase::materialFile)
+        .def_readonly("crystalStructure", &PolycrystallineMaterialBase::crystalStructure)
     ;
+    
+    py::class_<StressStraight<3,double>>(m,"StressStraight")
+        .def(py::init<const PolycrystallineMaterialBase&,const VectorDim&,const VectorDim&, const VectorDim&,
+             const double&>())
+        .def("stress",&StressStraight<3,double>::stress)
+    ;
+    
+    
     
 //    py::class_<BCClattice<3>>(m,"BCClattice")
 //        .def(py::init<const MatrixDim&,const PolycrystallineMaterialBase&>())
@@ -264,6 +306,7 @@ PYBIND11_MODULE(pyMoDELib,m)
 //        .def(py::init<const GlidePlaneBase&,const RationalLatticeDirection<3>&,const std::shared_ptr<DislocationMobilityBase>&,const std::shared_ptr<GlidePlaneNoise>&>())
         .def_readonly("unitNormal", &SlipSystem::unitNormal)
         .def_readonly("unitSlip", &SlipSystem::unitSlip)
+        .def("velocity", &SlipSystem::velocity)
     ;
     
 //    py::bind_map<std::map<const GlidePlaneBase*,std::shared_ptr<GammaSurface>>>(m, "GammaSurfaceMap");
@@ -532,6 +575,9 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def_readwrite("radiusDistributionMean", &FrankLoopsDensitySpecification::radiusDistributionMean)
         .def_readwrite("radiusDistributionStd", &FrankLoopsDensitySpecification::radiusDistributionStd)
         .def_readwrite("areVacancyLoops", &FrankLoopsDensitySpecification::areVacancyLoops)
+        .def_readwrite("allowedGrainIDs", &FrankLoopsDensitySpecification::allowedGrainIDs)
+        .def_readwrite("allowedPlaneIDs", &FrankLoopsDensitySpecification::allowedPlaneIDs)
+
     ;
 
     py::class_<FrankLoopsIndividualSpecification
@@ -685,11 +731,42 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def_readwrite("velocityReductionFactor", &PolyhedronInclusionIndividualSpecification::velocityReductionFactor)
         .def_readwrite("phaseID", &PolyhedronInclusionIndividualSpecification::phaseID)
     ;
-    
-    py::class_<DislocationMobilityBCC>(m,"DislocationMobilityBCC")
-        .def(py::init<const PolycrystallineMaterialBase&>())
-        .def("velocity", static_cast<double (DislocationMobilityBCC::*)(const Eigen::Matrix<double,3,3>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const double&)>(&DislocationMobilityBCC::velocity))
+
+
+    py::class_<DislocationMobility,std::shared_ptr<DislocationMobility>>(m,"DislocationMobility")
+        .def("velocity", static_cast<double (DislocationMobility::*)(const Eigen::Matrix<double,3,3>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const double&) const>(&DislocationMobility::velocity))
     ;
+    
+    py::class_<DislocationMobilityBase,std::shared_ptr<DislocationMobilityBase>>(m,"DislocationMobilityBase")
+        .def("velocity", static_cast<double (DislocationMobilityBase::*)(const Eigen::Matrix<double,3,3>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const double&) const>(&DislocationMobilityBase::velocity))
+    ;
+    
+    py::class_<DislocationMobilitySelector>(m,"DislocationMobilitySelector")
+        .def(py::init<>())
+        .def("getMobility",&DislocationMobilitySelector::getMobility)
+        .def("getMobilityBase",&DislocationMobilitySelector::getMobilityBase)
+    ;
+    
+    py::class_<DislocationMobilityViscousDrag,DislocationMobilityBase,std::shared_ptr<DislocationMobilityViscousDrag>>(m,"DislocationMobilityViscousDrag")
+//        .def(py::init<const PolycrystallineMaterialBase&>())
+//        .def("velocity", static_cast<double (DislocationMobilityFCC::*)(const Eigen::Matrix<double,3,3>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const double&)>(&DislocationMobilityFCC::velocity))
+    ;
+    
+    py::class_<DislocationMobilityKinkPair,DislocationMobilityBase,std::shared_ptr<DislocationMobilityKinkPair>>(m,"DislocationMobilityKinkPair")
+//        .def(py::init<const PolycrystallineMaterialBase&>())
+//        .def("velocity", static_cast<double (DislocationMobilityFCC::*)(const Eigen::Matrix<double,3,3>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const double&)>(&DislocationMobilityFCC::velocity))
+    ;
+
+    
+//    py::class_<DislocationMobilityBCC,DislocationMobilityBase>(m,"DislocationMobilityBCC")
+//        .def(py::init<const PolycrystallineMaterialBase&>())
+////        .def("velocity", static_cast<double (DislocationMobilityBCC::*)(const Eigen::Matrix<double,3,3>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const double&)>(&DislocationMobilityBCC::velocity))
+//    ;
+    
+//    py::class_<DislocationMobilityFCC,DislocationMobilityBase>(m,"DislocationMobilityFCC")
+//        .def(py::init<const PolycrystallineMaterialBase&>())
+////        .def("velocity", static_cast<double (DislocationMobilityFCC::*)(const Eigen::Matrix<double,3,3>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const Eigen::Matrix<double,3,1>&,const double&)>(&DislocationMobilityFCC::velocity))
+//    ;
 
 //    py::class_<DislocationMobilityPy>(m,"DislocationMobilityPy")
 //        .def(py::init<const PolycrystallineMaterialBase&>())

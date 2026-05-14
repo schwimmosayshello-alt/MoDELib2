@@ -19,6 +19,8 @@ namespace model
     /* init */,radiusDistributionMean(0.0)
     /* init */,radiusDistributionStd(0.0)
     /* init */,areVacancyLoops(true)
+    /* init */,allowedGrainIDs({-1})
+    /* init */,allowedPlaneIDs({-1})
     {
         
     }
@@ -27,9 +29,11 @@ namespace model
     /* init */ MicrostructureSpecificationBase("FrankLoops","Density",fileName)
     /* init */,targetDensity(this->parser->readScalar<double>("targetDensity",true))
     /* init */,numberOfSides(targetDensity>0.0? this->parser->readScalar<int>("numberOfSides",true) : 0)
-    /* init */,radiusDistributionMean(targetDensity>0.0? this->parser->readScalar<double>("radiusDistributionMean",true) : 0.0)
-    /* init */,radiusDistributionStd(targetDensity>0.0? this->parser->readScalar<double>("radiusDistributionStd",true) : 0.0)
+    /* init */,radiusDistributionMean(targetDensity>0.0? this->parser->readScalar<double>("radiusDistributionMean_SI",true) : 0.0)
+    /* init */,radiusDistributionStd(targetDensity>0.0? this->parser->readScalar<double>("radiusDistributionStd_SI",true) : 0.0)
     /* init */,areVacancyLoops(targetDensity>0.0? this->parser->readScalar<int>("areVacancyLoops",true) : 1)
+    /* init */,allowedGrainIDs(this->parser->readArray<int>("allowedGrainIDs",true))
+    /* init */,allowedPlaneIDs(this->parser->readArray<int>("allowedPlaneIDs",true))
     {
         
     }

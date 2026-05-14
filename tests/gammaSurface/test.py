@@ -77,4 +77,5 @@ for planeKey, planeValue in singleCrystal.planeNormals().items(): # loop over la
         plotGammaSurface(mat,planeValue.gammaSurface,"_plane_"+str(planeKey)+"_matrix",pts,nc,nR,C)
     # Second Phases
     for phaseKey, phaseValue in singleCrystal.secondPhases().items():
-        plotGammaSurface(mat,phaseValue.gammaSurface(planeKey),"_plane_"+str(planeKey)+"_"+phaseValue.name,pts,nc,nR,C)
+        if phaseValue.gammaSurface(planeKey) is not None:
+            plotGammaSurface(mat,phaseValue.gammaSurface(planeKey),"_plane_"+str(planeKey)+"_"+phaseValue.name,pts,nc,nR,C)

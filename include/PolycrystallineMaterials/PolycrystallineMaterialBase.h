@@ -54,6 +54,9 @@ namespace model
         
         static const std::string& getMaterialFile(const std::string& fileName);
         PolycrystallineMaterialBase(const std::string& fileName,const double& absoluteTemperature);
+        bool isEnabledPlane(const std::string& planeStr) const;
+        bool isEnabledSlipSystem(const std::string& ssStr) const;
+
     };
 }
 #endif

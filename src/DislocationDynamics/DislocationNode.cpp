@@ -195,10 +195,13 @@ typename DislocationNode<dim>::VectorDim DislocationNode<dim>::climbDirection() 
     template <int dim>
     void DislocationNode<dim>::set_V(const VectorDim& vNew,const bool& isClimbingStep)
     {
+        
+        double emaStrength=0.5;
                 
         vOld=velocity; // store current value of velocity before updating
         
-        velocity=vNew;
+        //velocity=vNew;
+        velocity=(1.0-emaStrength)*vNew+emaStrength*velocity;
         projectVelocity(isClimbingStep);
 
 //        if (this->network().capMaxVelocity && !this->network().timeIntegrator.isTimeStepControlling(*this))
@@ -215,42 +218,41 @@ typename DislocationNode<dim>::VectorDim DislocationNode<dim>::climbDirection() 
 //            }
 //        }
         
-        if(this->network().use_velocityFilter)
-        {
-            if(!isBoundaryNode())
-            {
-                const double filterThreshold=0.05*velocity.norm()*vOld.norm()+FLT_EPSILON;
-                
-                if(velocity.dot(vOld)<-filterThreshold)
-                {
-                    velocityReductionCoeff*=this->network().velocityReductionFactor;
-                }
-                else if(velocity.dot(vOld)>filterThreshold)
-                {
-                    velocityReductionCoeff/=this->network().velocityReductionFactor;
-                }
-                else
-                {
-                    // don't change velocityReductionCoeff
-                }
-                if(velocityReductionCoeff>1.0)
-                {
-                    velocityReductionCoeff=1.0;
-                }
-                if(velocityReductionCoeff<0.005)
-                {
-                    velocityReductionCoeff=0.005;
-                }
-                velocity*=velocityReductionCoeff;
-            }
-            else
-            {
-                // TO DO BOUNDARY NODES NEED TO INTERPOLATE ALSO THE VELOCTY FILTER
-            }
-            
-        }
+//        if(this->network().use_velocityFilter)
+//        {
+//            if(!isBoundaryNode())
+//            {
+//                const double filterThreshold=0.05*velocity.norm()*vOld.norm()+FLT_EPSILON;
+//                
+//                if(velocity.dot(vOld)<-filterThreshold)
+//                {
+//                    velocityReductionCoeff*=this->network().velocityReductionFactor;
+//                }
+//                else if(velocity.dot(vOld)>filterThreshold)
+//                {
+//                    velocityReductionCoeff/=this->network().velocityReductionFactor;
+//                }
+//                else
+//                {
+//                    // don't change velocityReductionCoeff
+//                }
+//                if(velocityReductionCoeff>1.0)
+//                {
+//                    velocityReductionCoeff=1.0;
+//                }
+//                if(velocityReductionCoeff<0.005)
+//                {
+//                    velocityReductionCoeff=0.005;
+//                }
+//                velocity*=velocityReductionCoeff;
+//            }
+//            else
+//            {
+//                // TO DO BOUNDARY NODES NEED TO INTERPOLATE ALSO THE VELOCTY FILTER
+//            }
+//            
+//        }
     }
-
 
     template <int dim>
     void DislocationNode<dim>::updateGeometry()
@@ -267,7 +269,8 @@ typename DislocationNode<dim>::VectorDim DislocationNode<dim>::climbDirection() 
         VerboseDislocationNode(1, " Try  Setting P for Network Node " << this->tag()<<" to"<<newP.transpose()<< std::endl;);
         const VectorDim snappedPosition(this->snapToGlidePlanesinPeriodic(newP));
         VerboseDislocationNode(2, " snappedPosition= " << snappedPosition.transpose()<< std::endl;);
-        if((this->get_P()-snappedPosition).norm()>FLT_EPSILON)
+        std::pair<bool, const Simplex<dim,dim>*> temp(this->network().ddBase.mesh.searchRegionWithGuess(newP,p_Simplex));
+        if((this->get_P()-snappedPosition).norm()>FLT_EPSILON && temp.first)
         {
             for (auto &loopNode : this->loopNodes())
             {

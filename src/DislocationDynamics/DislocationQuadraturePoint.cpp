@@ -144,28 +144,30 @@ namespace model
         
         if(parentSegment.slipSystem())
         {
-            VectorDim n(parentSegment.glidePlaneNormal()); // plane normal
-            VectorDim b(parentSegment.burgers()); // Burgers vector
-            VectorDim t(rl);            // tangent vector
+//            VectorDim n(parentSegment.glidePlaneNormal()); // plane normal
+//            VectorDim b(parentSegment.burgers()); // Burgers vector
+//            VectorDim t(rl);            // tangent vector
+//            
+//            // Select right-handed normal whenever possible
+//            if(parentSegment.loopLinks().size()==1)
+//            {// pick right-handed normal for n
+//                const typename LinkType::LoopLinkType& loopLink(**parentSegment.loopLinks().begin());
+//                if(std::fabs(loopLink.loop->slippedArea())>FLT_EPSILON)
+//                {
+//                    if(parentSegment.source->sID!=loopLink.source->sID)
+//                    {// NetworkLink and LoopLink are oriented in opposite direction
+//                        b*=-1.0;
+//                        t*=-1.0;
+//                    }
+//                }
+//            }
             
-            // Select right-handed normal whenever possible
-            if(parentSegment.loopLinks().size()==1)
-            {// pick right-handed normal for n
-                const typename LinkType::LoopLinkType& loopLink(**parentSegment.loopLinks().begin());
-                if(std::fabs(loopLink.loop->slippedArea())>FLT_EPSILON)
-                {
-                    if(parentSegment.source->sID!=loopLink.source->sID)
-                    {// NetworkLink and LoopLink are oriented in opposite direction
-                        b*=-1.0;
-                        t*=-1.0;
-                    }
-                }
-            }
-            
+            const VectorDim& n(parentSegment.slipSystem()->unitNormal);
+            const VectorDim& b(parentSegment.burgers()); // Burgers vector
+            const VectorDim& t(rl);            // tangent vector
+
             VectorDim glideForce = fPK-fPK.dot(n)*n;
             double glideForceNorm(glideForce.norm());
-            //        std::cout<<"fPK="<<fPK.transpose()<<std::endl;
-            //        std::cout<<"glideForceNorm="<<glideForceNorm<<std::endl;
             
             if(glideForceNorm<FLT_EPSILON && parentSegment.network().stochasticForceGenerator)
             {

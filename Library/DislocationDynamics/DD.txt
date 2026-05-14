@@ -8,7 +8,7 @@ useInclusions=1;
 useClusterDynamics=0;
 useClusterDynamicsFEM=1;
 useCracks=0;
-Nsteps=250;		# total number of simulation steps
+Nsteps=100;		# total number of simulation steps
 startAtTimeStep = -1;  # time step for restart. -1 means last available step in file F/F_0.txt
 
 ######################################
@@ -18,6 +18,7 @@ use_directSolver_FEM=1; # direct vs iterative solver
 solverTolerance=1.0e-7; # tolerance for iterative solver
 # Surface nucleation model (0=no nucleation)
 surfaceNucleationModel=0;
+bulkNucleationModel=0;
 
 ######################################
 # Settings for periodic simulations ()
