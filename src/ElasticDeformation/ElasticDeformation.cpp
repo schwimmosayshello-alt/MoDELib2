@@ -63,10 +63,10 @@ namespace model
     template<int dim>
     ElasticDeformation<dim>::ElasticDeformation(MicrostructureContainerType& mc) :
     /* init */ MicrostructureBase<dim>("ElasticDeformation",mc)
-    /* init */,useElasticDeformationFEM(this->microstructures.ddBase.fe? bool(TextFileParser(this->microstructures.ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("useElasticDeformationFEM",true)) : false )
+    /* init */,useElasticDeformationFEM(this->microstructures.ddBase.fe? bool(TextFileParser(this->microstructures.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/ElasticDeformation.txt").readScalar<int>("useElasticDeformationFEM",true)) : false )
     /* init */,elasticDeformationFEM(useElasticDeformationFEM?  new ElasticDeformationFEM<dim>(this->microstructures.ddBase) : nullptr)
     /* init */,uniformLoadController(useElasticDeformationFEM? std::unique_ptr<UniformControllerType>(nullptr) : getUniformEDcontroller(this->microstructures.ddBase))
-    /* init */,inertiaReliefPenaltyFactor(uniformLoadController? 0.0 : TextFileParser(this->microstructures.ddBase.simulationParameters.traitsIO.ddFile).readScalar<double>("inertiaReliefPenaltyFactor",true))
+    /* init */,inertiaReliefPenaltyFactor(uniformLoadController? 0.0 : TextFileParser(this->microstructures.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/ElasticDeformation.txt").readScalar<double>("inertiaReliefPenaltyFactor",true))
     /* init */,ndA(this->microstructures.ddBase.fe? this->microstructures.ddBase.fe->template boundary<ExternalBoundary,imageTractionIntegrationOrder,GaussLegendre>() : TractionIntegrationDomainType())
     /* init */,tractionList(ndA.template integrationList<FEMfaceEvaluation<ElementType,dim,dim>>())
     /* init */,solverInitialized(false)
@@ -160,6 +160,25 @@ namespace model
             zDot.setZero(elasticDeformationFEM->z.gSize());
         }
     }
+
+template<int dim>
+void ElasticDeformation<dim>::reSolve()
+{
+    if(uniformLoadController)
+    {
+//        const MatrixDim apd(this->microstructures.averagePlasticDistortion());
+//        const MatrixDim aps(0.5*(apd+apd.transpose()));
+//        uniformLoadController->gs=this->microstructures.ddBase.voigtTraits.m2v(aps,true);
+    }
+    else
+    {
+        std::cout<<", zDot "<<std::flush;
+        for(const auto& node : elasticDeformationFEM->z.fe().nodes())
+        {
+            zDot.template segment<dim>(dim*node.gID)=this->microstructures.inelasticDisplacementRate(node.P0,&node,nullptr,nullptr);
+        }
+    }
+}
 
     template<int dim>
     void ElasticDeformation<dim>::solve()

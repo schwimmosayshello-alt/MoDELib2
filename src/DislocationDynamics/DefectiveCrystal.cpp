@@ -9,6 +9,7 @@
 #define model_DefectiveCrystal_cpp_
 
 #include <DefectiveCrystal.h>
+#include <StrUtilities.h>
 
 namespace model
 {
@@ -27,22 +28,57 @@ namespace model
             throw std::runtime_error("Cannot open file "+this->ddBase.simulationParameters.traitsIO.flabFile);
         }
         
-        if(this->ddBase.simulationParameters.useInclusions)
+        
+        
+        std::stringstream ss(this->ddBase.simulationParameters.physics);
+        std::string tempVal;
+        std::vector<std::string> physics;
+        while (ss >> tempVal)
         {
-            this->emplace_back(new InclusionMicrostructureType(*this));
+            physics.push_back(tempVal);
         }
-        if(this->ddBase.simulationParameters.useElasticDeformation)
+        
+        for(const auto& phys : physics)
         {
-            this->emplace_back(new ElasticDeformationType(*this));
+            if(StrUtilities::lowercase(phys)=="inclusionmicrostructure" && this->template getUniqueTypedMicrostructure<InclusionMicrostructureType>()==nullptr)
+            {
+                this->emplace_back(new InclusionMicrostructureType(*this));
+            }
+            else if(StrUtilities::lowercase(phys)=="dislocationdynamics" && this->template getUniqueTypedMicrostructure<DislocationNetworkType>()==nullptr)
+            {
+                this->emplace_back(new DislocationNetworkType(*this));
+            }
+            else if(StrUtilities::lowercase(phys)=="clusterdynamics" && this->template getUniqueTypedMicrostructure<ClusterDynamicsType>()==nullptr)
+            {
+                this->emplace_back(new ClusterDynamicsType(*this));
+            }
+            else if(StrUtilities::lowercase(phys)=="elasticdeformation" && this->template getUniqueTypedMicrostructure<ElasticDeformationType>()==nullptr)
+            {
+                this->emplace_back(new ElasticDeformationType(*this));
+            }
+            else
+            {
+                throw std::runtime_error("Unknown physics "+phys);
+            }
         }
-        if(this->ddBase.simulationParameters.useClusterDynamics)
-        {
-            this->emplace_back(new ClusterDynamicsType(*this));
-        }
-        if(this->ddBase.simulationParameters.useDislocations)
-        {
-            this->emplace_back(new DislocationNetworkType(*this));
-        }
+        
+//        if(this->ddBase.simulationParameters.useInclusions)
+//        {
+//            this->emplace_back(new InclusionMicrostructureType(*this));
+//        }
+//        if(this->ddBase.simulationParameters.useDislocations)
+//        {
+//            this->emplace_back(new DislocationNetworkType(*this));
+//        }
+//        if(this->ddBase.simulationParameters.useClusterDynamics)
+//        {
+//            this->emplace_back(new ClusterDynamicsType(*this));
+//        }
+//        if(this->ddBase.simulationParameters.useElasticDeformation)
+//        {
+//            this->emplace_back(new ElasticDeformationType(*this));
+//        }
+
 //        std::cout<<"Defective Crystal Done Constructor"<<std::endl;
     }
 
@@ -59,6 +95,10 @@ namespace model
         /*                    */<< ", time="<<this->ddBase.simulationParameters.totalTime<<defaultColor<<std::endl;
         
         this->solve();
+        for(int r=0;r<this->ddBase.simulationParameters.maxResolveSteps;++r)
+        {
+            this->reSolve();
+        }
         this->ddBase.simulationParameters.dt=this->getDt();
                 
         if (!(this->ddBase.simulationParameters.runID%this->ddBase.simulationParameters.outputFrequency))
@@ -129,7 +169,7 @@ namespace model
     {/*! Runs a number of simulation time steps defined by simulationParameters.Nsteps
       */
         const auto t0= std::chrono::system_clock::now();
-        this->updateConfiguration();
+//        this->updateConfiguration(); // added to compute right-handed normals. Now removed since DislocationNetwork::updateGeometry is called during initialization
         while (this->ddBase.simulationParameters.runID<this->ddBase.simulationParameters.Nsteps)
         {
             runSingleStep();

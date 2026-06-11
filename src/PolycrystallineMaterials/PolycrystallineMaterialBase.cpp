@@ -27,6 +27,7 @@ namespace model
     /* init */,mu1_SI(TextFileParser(materialFile).readScalar<double>("mu1_SI",true))
     /* init */,mu_SI(mu0_SI+mu1_SI*T)
     /* init */,nu(TextFileParser(materialFile).readScalar<double>("nu",true))
+    /* init */,E_SI(2.0*mu_SI*(1.0+nu))
     /* init */,rho_SI(TextFileParser(materialFile).readScalar<double>("rho_SI",true))
     /* init */,cs_SI(sqrt(mu_SI/rho_SI))
     /* init */,b_SI(TextFileParser(materialFile).readScalar<double>("b_SI",true))

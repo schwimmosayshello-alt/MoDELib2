@@ -19,7 +19,7 @@ namespace model
     template <typename DislocationNetworkType>
     std::shared_ptr<BaseCrossSlipModel<DislocationNetworkType>> DislocationCrossSlip<DislocationNetworkType>::getModel(const PolycrystallineMaterialBase& material,const DDtraitsIO& traitsIO)
     {
-        const int crossSlipModel(TextFileParser(traitsIO.ddFile).readScalar<int>("crossSlipModel",true));
+        const int crossSlipModel(TextFileParser(traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("crossSlipModel",true));
         switch (crossSlipModel)
         {
             case 0:
@@ -60,7 +60,7 @@ namespace model
     template <typename DislocationNetworkType>
     DislocationCrossSlip<DislocationNetworkType>::DislocationCrossSlip(DislocationNetworkType& DN_in) :
     /* init */ DN(DN_in)
-    /* init */,verboseCrossSlip(TextFileParser(DN.ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("verboseCrossSlip",true))
+    /* init */,verboseCrossSlip(TextFileParser(DN.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("verboseCrossSlip",true))
     {
     }
 

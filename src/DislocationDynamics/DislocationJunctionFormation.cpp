@@ -1028,8 +1028,8 @@ namespace model
     template <typename DislocationNetworkType>
     DislocationJunctionFormation<DislocationNetworkType>::DislocationJunctionFormation(DislocationNetworkType& DN_in) :
     /* init */ DN(DN_in)
-    /* init */,maxJunctionIterations(TextFileParser(DN.ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("maxJunctionIterations",true))
-    /* init */,verboseJunctions(TextFileParser(DN.ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("verboseJunctions",true))
+    /* init */,maxJunctionIterations(TextFileParser(DN.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("maxJunctionIterations",true))
+    /* init */,verboseJunctions(TextFileParser(DN.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("verboseJunctions",true))
     /* init */,infiniteLineLength(10000.0)
     {
         

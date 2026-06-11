@@ -88,6 +88,7 @@ namespace model
         std::vector<MeshedDislocationLoop> meshed(const double& meshSize,const double& localMeshSize) const;
         static void initFromFile(const std::string&);
         static double planarSolidAngle(const VectorDim& x,const VectorDim& planePoint,const VectorDim& rhN,const std::vector<std::pair<VectorDim,VectorDim>>& polygonSegments);
+        bool flippedInsideOut(const int& N,const double& areaThreshold) const;
         template <typename T> static int sgn(const T& val);
    };
     

@@ -17,6 +17,8 @@
 
 namespace model
 {
+
+
     template <int dim>
     DislocationNetwork<dim>::DislocationNetwork(MicrostructureContainerType& mc) :
     /* init */ MicrostructureBase<dim>("DislocationDynamics",mc)
@@ -28,41 +30,53 @@ namespace model
     /* init */,crossSlipMaker(*this)
     /* init */,nodeContractor(*this)
     /* init */,timeStepper(*this)
-    /* init */,stochasticForceGenerator(ddBase.simulationParameters.use_stochasticForce? new StochasticForceGenerator(ddBase.simulationParameters.traitsIO) : nullptr)
-    /* init */,bulkNucleationModel(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("bulkNucleationModel",true))
-    /* init */,surfaceNucleationModel(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("surfaceNucleationModel",true))
-    /* init */,computeDDinteractions(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("computeDDinteractions",true))
-    /* init */,outputQuadraturePoints(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("outputQuadraturePoints",true))
-    /* init */,outputLinkingNumbers(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("outputLinkingNumbers",true))
-    /* init */,outputLoopLength(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("outputLoopLength",true))
-    /* init */,outputSegmentPairDistances(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("outputSegmentPairDistances",true))
-    /* init */,outputPlasticDistortionPerSlipSystem(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("outputPlasticDistortionPerSlipSystem",true))
-    /* init */,outputDislocationDensityPerSlipSystem(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("outputDislocationDensityPerSlipSystem",true))
-    /* init */,computeElasticEnergyPerLength(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("computeElasticEnergyPerLength",true))
-    /* init */,alphaLineTension(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<double>("alphaLineTension",true))
-    /* init */,use_velocityFilter(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<double>("use_velocityFilter",true))
-    /* init */,velocityReductionFactor(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<double>("velocityReductionFactor",true))
-    /* init */,nodalVelocityConstraints(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readMatrixCols<double>("nodalVelocityConstraints",dim,true))
-    /* init */,verboseDislocationNode(TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("verboseDislocationNode",true))
+    /* init */,stochasticForceGenerator(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("useStochasticForce",true)? new StochasticForceGenerator(ddBase.simulationParameters.traitsIO) : nullptr)
+    /* init */,bulkNucleationModel(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("bulkNucleationModel",true))
+    /* init */,surfaceNucleationModel(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("surfaceNucleationModel",true))
+    /* init */,computeDDinteractions(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("computeDDinteractions",true))
+    /* init */,outputQuadraturePoints(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("outputQuadraturePoints",true))
+    /* init */,outputLinkingNumbers(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("outputLinkingNumbers",true))
+    /* init */,outputLoopLength(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("outputLoopLength",true))
+    /* init */,outputSegmentPairDistances(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("outputSegmentPairDistances",true))
+    /* init */,outputPlasticDistortionPerSlipSystem(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("outputPlasticDistortionPerSlipSystem",true))
+    /* init */,outputDislocationDensityPerSlipSystem(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("outputDislocationDensityPerSlipSystem",true))
+    /* init */,computeElasticEnergyPerLength(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("computeElasticEnergyPerLength",true))
+    /* init */,alphaLineTension(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<double>("alphaLineTension",true))
+    /* init */,use_velocityFilter(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<double>("use_velocityFilter",true))
+    /* init */,velocityReductionFactor(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<double>("velocityReductionFactor",true))
+    /* init */,nodalVelocityConstraints(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readMatrixCols<double>("nodalVelocityConstraints",dim,true))
+    /* init */,subcyclingBins(getSubCyclingSet(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readArray<int>("subcyclingBins",true)))
+    /* init */,verboseDislocationNode(TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("verboseDislocationNode",true))
     {
         assert(velocityReductionFactor>0.0 && velocityReductionFactor<=1.0);
-        LoopNetworkType::verboseLevel=TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("verboseLoopNetwork",true);
-        verboseDislocationNetwork=TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("verboseDislocationNetwork",true);
+        LoopNetworkType::verboseLevel=TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("verboseLoopNetwork",true);
+        verboseDislocationNetwork=TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("verboseDislocationNetwork",true);
     }
+
+template <int dim>
+std::set<int> DislocationNetwork<dim>::getSubCyclingSet(const std::vector<int> &inpVector)
+{
+    std::set<int> temp;
+    for (const auto &iv : inpVector)
+    {
+        temp.insert(iv);
+    }
+    return (temp.size()>1)? temp : std::set<int>();
+}
 
     template <int dim>
     void DislocationNetwork<dim>::initializeConfiguration(const DDconfigIO<dim>& configIO,const std::ofstream&,const std::ofstream&)
     {
         this->lastUpdateTime=this->microstructures.ddBase.simulationParameters.totalTime;
         
-        LoopType::initFromFile(ddBase.simulationParameters.traitsIO.ddFile);
-        LoopNodeType::initFromFile(ddBase.simulationParameters.traitsIO.ddFile);
-        LoopLinkType::initFromFile(ddBase.simulationParameters.traitsIO.ddFile);
-        NetworkLinkType::initFromFile(ddBase.simulationParameters.traitsIO.ddFile);
-        DislocationFieldBase<dim>::initFromFile(ddBase.simulationParameters.traitsIO.ddFile);
+        LoopType::initFromFile(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt");
+        LoopNodeType::initFromFile(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt");
+        LoopLinkType::initFromFile(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt");
+        NetworkLinkType::initFromFile(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt");
+        DislocationFieldBase<dim>::initFromFile(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt");
         
-        glideSolver=DislocationGlideSolverFactory<DislocationNetwork<dim>>::getGlideSolver(*this,TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readString("glideSolverType",false));
-        climbSolver=DislocationClimbSolverFactory<DislocationNetwork<dim>>::getClimbSolver(*this,TextFileParser(ddBase.simulationParameters.traitsIO.ddFile).readString("climbSolverType",false));
+        glideSolver=DislocationGlideSolverFactory<DislocationNetwork<dim>>::getGlideSolver(*this,TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readString("glideSolverType",false));
+        climbSolver=DislocationClimbSolverFactory<DislocationNetwork<dim>>::getClimbSolver(*this,TextFileParser(ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readString("climbSolverType",false));
         _inclusions=this->microstructures.template getUniqueTypedMicrostructure<InclusionMicrostructure<dim>>();
         
         setConfiguration(configIO);
@@ -642,6 +656,136 @@ namespace model
         }
     }
 
+template <int dim>
+void DislocationNetwork<dim>::reSolve()
+{
+    
+    const bool isClimbingStep(isClimbStep());
+    if(isClimbingStep)
+    {
+        std::cout<<" climbStep"<<std::flush;
+    }
+    else
+    {
+        std::cout<<" glideStep"<<std::flush;
+    }
+    double maxVelocity = 0.0;
+    for (const auto &nodeIter : this->networkNodes())
+    {
+        const double vNorm(nodeIter.second.lock()->get_V().norm());
+        if (vNorm > maxVelocity)
+        {
+            maxVelocity = vNorm;
+        }
+    }
+    
+#ifdef _OPENMP
+    const size_t nThreads = omp_get_max_threads();
+#else
+    const size_t nThreads = 1;
+#endif
+    
+    //! -1 Compute the interaction StressField between dislocation particles
+    std::map<int, int> velocityBinMap;
+    for (const auto &binVal : subcyclingBins)
+    {
+        velocityBinMap.emplace(binVal, 0);
+    }
+    
+    
+    std::cout <<" ,updating updateForcesAndVelocities (" << nThreads << " threads) " << std::flush;
+#ifdef _OPENMP
+#pragma omp parallel for
+    for (size_t k = 0; k < this->networkLinks().size(); ++k)
+    {
+        auto linkIter(this->networkLinks().begin());
+        std::advance(linkIter, k);
+        const int velGroup((subcyclingBins.size() && !isClimbingStep) ? linkIter->second.lock()->velocityGroup(maxVelocity, subcyclingBins) : 1);
+        
+        if ((ddBase.simulationParameters.runID % velGroup) == 0)
+        {
+            for(auto& qp : linkIter->second.lock()->quadraturePoints())
+            {
+                qp.updateForcesAndVelocities(*linkIter->second.lock(),isClimbingStep);
+            }
+        }
+        //            else
+        //            {
+        //                linkIter->second.lock()->assembleGlide(false);
+        //            }
+    }
+#else
+    for (auto &linkIter : this->networkLinks())
+    {
+        const int velGroup(subcyclingBins.size() ? linkIter.second.lock()->velocityGroup(maxVelocity, subcyclingBins) : 1);
+        
+        if ((ddBase.simulationParameters.runID % velGroup) == 0)
+        {
+            for(auto& qp : linkIter->second.lock()->quadraturePoints())
+            {
+                qp.updateForcesAndVelocities(*linkIter->second.lock(),isClimbingStep);
+            }
+        }
+        //            else
+        //            {
+        //                linkIter.second.lock()->assembleGlide(false);
+        //            }
+    }
+#endif
+    
+    Eigen::VectorXd X(Eigen::VectorXd::Zero(0));
+    if(isClimbingStep)
+    {
+        climbSolver->computeClimbScalarVelocities(false);
+        size_t k=0;
+        for (auto& networkNode : this->networkNodes())
+        {
+            networkNode.second.lock()->climbVelocityScalar=climbSolver->scalarVelocities()[k];
+            ++k;
+        }
+        X=climbSolver->getNodeVelocities();
+    }
+    else
+    {
+        if(glideSolver)
+        {
+            size_t k=0;
+            for (auto& networkNode : this->networkNodes())
+            {
+                networkNode.second.lock()->climbVelocityScalar.setZero();
+                ++k;
+            }
+            X=glideSolver->getNodeVelocities();
+        }
+    }
+    if(int(NdofXnode*this->networkNodes().size())==X.size())
+    {
+        size_t k=0;
+        for (auto& networkNode : this->networkNodes())
+        {
+            networkNode.second.lock()->set_V(X.segment(NdofXnode*k,NdofXnode),isClimbingStep); // double cast to remove some numerical noise
+            ++k;
+        }
+    }
+    else
+    {
+        std::cout<<"NdofXnode*this->networkNodes().size()="<<NdofXnode*this->networkNodes().size()<<std::endl;
+        std::cout<<"vSolver->getNodeVelocities().size()="<<X.size()<<std::endl;
+        throw std::runtime_error("vSolver returned wrong velocity vector size.");
+    }
+    
+    VerboseDislocationNetwork(2,"DislocationNetwork::updateRates"<<std::endl;);
+    for(auto& loop : this->loops())
+    {// copmute slipped areas and right-handed normal // TODO: PARALLELIZE THIS LOOP
+        loop.second.lock()->updateRates();
+    }
+    // updatePlasticDistortionRateFromAreas();
+    VerboseDislocationNetwork(3,"DislocationNetwork::updateRates DONE"<<std::endl;);
+    
+//    storeSingleGlideStepDiscreteEvents(ddBase.simulationParameters.runID);
+    
+}
+
     template <int dim>
     void DislocationNetwork<dim>::solve()
     {
@@ -673,7 +817,7 @@ namespace model
         
         //! -1 Compute the interaction StressField between dislocation particles
         std::map<int, int> velocityBinMap;
-        for (const auto &binVal : ddBase.simulationParameters.subcyclingBins)
+        for (const auto &binVal : subcyclingBins)
         {
             velocityBinMap.emplace(binVal, 0);
         }
@@ -682,7 +826,7 @@ namespace model
         for (const auto &links : this->networkLinks())
         {
             
-            const int velGroup((ddBase.simulationParameters.useSubCycling && !isClimbingStep) ? links.second.lock()->velocityGroup(maxVelocity, ddBase.simulationParameters.subcyclingBins) : 1);
+            const int velGroup((subcyclingBins.size() && !isClimbingStep) ? links.second.lock()->velocityGroup(maxVelocity, subcyclingBins) : 1);
             auto velocityBinIter(velocityBinMap.find(velGroup));
             assert(velocityBinIter != velocityBinMap.end());
             velocityBinIter->second++;
@@ -700,7 +844,7 @@ namespace model
         {
             auto linkIter(this->networkLinks().begin());
             std::advance(linkIter, k);
-            const int velGroup((ddBase.simulationParameters.useSubCycling && !isClimbingStep) ? linkIter->second.lock()->velocityGroup(maxVelocity, ddBase.simulationParameters.subcyclingBins) : 1);
+            const int velGroup((subcyclingBins.size() && !isClimbingStep) ? linkIter->second.lock()->velocityGroup(maxVelocity, subcyclingBins) : 1);
             
             if ((ddBase.simulationParameters.runID % velGroup) == 0)
             {
@@ -714,7 +858,7 @@ namespace model
     #else
         for (auto &linkIter : this->networkLinks())
         {
-            const int velGroup(ddBase.simulationParameters.useSubCycling ? linkIter.second.lock()->velocityGroup(maxVelocity, ddBase.simulationParameters.subcyclingBins) : 1);
+            const int velGroup(subcyclingBins.size() ? linkIter.second.lock()->velocityGroup(maxVelocity, subcyclingBins) : 1);
             
             if ((ddBase.simulationParameters.runID % velGroup) == 0)
             {
@@ -730,7 +874,7 @@ namespace model
         Eigen::VectorXd X(Eigen::VectorXd::Zero(0));
         if(isClimbingStep)
         {
-            climbSolver->computeClimbScalarVelocities();
+            climbSolver->computeClimbScalarVelocities(true);
             size_t k=0;
             for (auto& networkNode : this->networkNodes())
             {

@@ -8,29 +8,33 @@ for x in folders:
     if not os.path.exists(x):
         os.makedirs(x)
 
+# Make a local copy of DefectiveCrystal parameters file and modify that copy if necessary
+DCfile='DefectiveCrystal.txt'
+DCfileTemplate='../../Library/DefectiveCrystal/'+DCfile
+print("\033[1;32mCreating  DDfile\033[0m")
+shutil.copy2(DCfileTemplate,'inputFiles/'+DCfile)
+setInputVariable('inputFiles/'+DCfile,'physics','DislocationDynamics ElasticDeformation')
+setInputVariable('inputFiles/'+DCfile,'useFEM','0')
+setInputVariable('inputFiles/'+DCfile,'Nsteps','10000')  # number of simulation steps
+setInputVariable('inputFiles/'+DCfile,'maxResolveSteps','0')  # number of simulation steps
+setInputVariable('inputFiles/'+DCfile,'dtMax','1e25')
+setInputVariable('inputFiles/'+DCfile,'outputFrequency','10')  # output frequency
+
 # Make a local copy of DD parameters file and modify that copy if necessary
 DDfile='DD.txt'
 DDfileTemplate='../../Library/DislocationDynamics/'+DDfile
 print("\033[1;32mCreating  DDfile\033[0m")
 shutil.copy2(DDfileTemplate,'inputFiles/'+DDfile)
-setInputVariable('inputFiles/'+DDfile,'useFEM','0')
-setInputVariable('inputFiles/'+DDfile,'useDislocations','1')
-setInputVariable('inputFiles/'+DDfile,'useInclusions','0')
-setInputVariable('inputFiles/'+DDfile,'useElasticDeformation','1')
-setInputVariable('inputFiles/'+DDfile,'useClusterDynamics','0')
 setInputVariable('inputFiles/'+DDfile,'timeSteppingMethod','adaptive') # adaptive or fixed
 setInputVariable('inputFiles/'+DDfile,'dtMax','1e25')
 setInputVariable('inputFiles/'+DDfile,'dxMax','10') # max nodal displacement for when timeSteppingMethod=adaptive
 setInputVariable('inputFiles/'+DDfile,'use_velocityFilter','1') # don't filter velocity if noise is enabled
-setInputVariable('inputFiles/'+DDfile,'use_stochasticForce','0') # Langevin thermal noise enabled
 setInputVariable('inputFiles/'+DDfile,'alphaLineTension','1.0') # dimensionless scale factor in for line tension forces
 setInputVariable('inputFiles/'+DDfile,'Lmin','25')  # min segment length (in Burgers vector units)
 setInputVariable('inputFiles/'+DDfile,'Lmax','150')  # max segment length (in Burgers vector units)
-setInputVariable('inputFiles/'+DDfile,'outputFrequency','10')  # output frequency
 setInputVariable('inputFiles/'+DDfile,'outputQuadraturePoints','1')  # output quadrature data
 setInputVariable('inputFiles/'+DDfile,'glideSolverType','Galerkin')  # type of glide solver, or none
 setInputVariable('inputFiles/'+DDfile,'climbSolverType','none')  # type of clim solver, or none
-setInputVariable('inputFiles/'+DDfile,'Nsteps','10000')  # number of simulation steps
 setInputVariable('inputFiles/'+DDfile,'crossSlipModel','0')  # crossSlipModel
 
 # Make a local copy of material file, and modify that copy if necessary
@@ -64,46 +68,36 @@ pf.boxScaling=np.array([1e-6,1e-6,1e-6])/b_SI # length of box edges in Burgers v
 pf.X0=np.array([0,0,0]) # Centering unitCube mesh. Mesh nodes X are mapped to x=F*(X-X0)
 pf.periodicFaceIDs=np.array([-1])
 pf.write('inputFiles')
+microstructureFiles = []
 
-# make a local copy of microstructure file, and modify that copy if necessary
-#microstructureFile1='shearLoopsDensity.txt';
-#microstructureFileTemplate='../../Library/Microstructures/'+microstructureFile1;
-#print("\033[1;32mCreating  microstructureFile\033[0m")
-#shutil.copy2(microstructureFileTemplate,'inputFiles/'+microstructureFile1) # target filename is /dst/dir/file.ext
-#setInputVariable('inputFiles/'+microstructureFile1,'targetDensity_SI','1e11')
-#setInputVariable('inputFiles/'+microstructureFile1,'radiusDistributionMean_SI','1e-05')
-#setInputVariable('inputFiles/'+microstructureFile1,'radiusDistributionStd_SI','0.0')
-#setInputVariable('inputFiles/'+microstructureFile1,'numberOfSides','4')
-#setInputVector('inputFiles/'+microstructureFile1,'allowedGrainIDs',np.array([-1]),'set of grain IDs where loops are allowed. Use -1 for all grains')
-#setInputVector('inputFiles/'+microstructureFile1,'allowedSlipSystemIDs',np.array([-1]),'set of slip system IDs whose Burgers vector are allowed to be the prism axis. Use -1 for all slip systems')
+microstructureFileID=1;
+microstructureName='prismaticLoopsDensity.txt';
+microstructureFileTemplate='../../Library/Microstructures/'+microstructureName;
+microstructureFileLocal='inputFiles/microstructureFile'+str(microstructureFileID)+'.txt'
+microstructureFiles.append('microstructureFile'+str(microstructureFileID)+'.txt')
+print("\033[1;32mCreating  microstructureFile"+str(microstructureFileID)+"\033[0m")
+shutil.copy2(microstructureFileTemplate,microstructureFileLocal) # target filename is /dst/dir/file.ext
+setInputVariable(microstructureFileLocal,'targetDensity_SI','1e13')
+setInputVariable(microstructureFileLocal,'radiusDistributionMean_SI','1e-07')
+setInputVariable(microstructureFileLocal,'radiusDistributionStd_SI','0e-07')
+setInputVector(microstructureFileLocal,'allowedGrainIDs',np.array([-1]),'set of grain IDs where loops are allowed. Use -1 for all grains')
+setInputVector(microstructureFileLocal,'allowedSlipSystemIDs',np.array([-1]),'set of slip system IDs whose Burgers vector are allowed to be the prism axis. Use -1 for all slip systems')
 
-microstructureFile1='prismaticLoopsDensity.txt';
-microstructureFileTemplate='../../Library/Microstructures/'+microstructureFile1;
-print("\033[1;32mCreating  microstructureFile\033[0m")
-shutil.copy2(microstructureFileTemplate,'inputFiles/'+microstructureFile1) # target filename is /dst/dir/file.ext
-setInputVariable('inputFiles/'+microstructureFile1,'targetDensity_SI','1e13')
-setInputVariable('inputFiles/'+microstructureFile1,'radiusDistributionMean_SI','1e-07')
-setInputVariable('inputFiles/'+microstructureFile1,'radiusDistributionStd_SI','0e-07')
-setInputVector('inputFiles/'+microstructureFile1,'allowedGrainIDs',np.array([-1]),'set of grain IDs where loops are allowed. Use -1 for all grains')
-setInputVector('inputFiles/'+microstructureFile1,'allowedSlipSystemIDs',np.array([-1]),'set of slip system IDs whose Burgers vector are allowed to be the prism axis. Use -1 for all slip systems')
-
-
-#microstructureFile2='sphericalInclusionsDensity.txt';
-#microstructureFileTemplate='../../Library/Microstructures/'+microstructureFile2;
-#print("\033[1;32mCreating  microstructureFile\033[0m")
-#shutil.copy2(microstructureFileTemplate,'inputFiles/'+microstructureFile2) # target filename is /dst/dir/file.ext
-#setInputVariable('inputFiles/'+microstructureFile2,'targetDensity','1e20') # ID of the phase of the precipitate
-
-#microstructureFile3='frankLoopsDensity.txt';
-#microstructureFileTemplate='../../Library/Microstructures/'+microstructureFile3;
-#print("\033[1;32mCreating  microstructureFile\033[0m")
-#shutil.copy2(microstructureFileTemplate,'inputFiles/'+microstructureFile3) # target filename is /dst/dir/file.ext
-#setInputVariable('inputFiles/'+microstructureFile3,'targetDensity','1e14') # ID of the phase of the precipitate
-#setInputVariable('inputFiles/'+microstructureFile3,'radiusDistributionMean','1e-8') # ID of the phase of the precipitate
-
+microstructureFileID=2;
+microstructureName='frankLoopsDensity.txt';
+microstructureFileTemplate='../../Library/Microstructures/'+microstructureName;
+microstructureFileLocal='inputFiles/microstructureFile'+str(microstructureFileID)+'.txt'
+microstructureFiles.append('microstructureFile'+str(microstructureFileID)+'.txt')
+print("\033[1;32mCreating  microstructureFile"+str(microstructureFileID)+"\033[0m")
+shutil.copy2(microstructureFileTemplate,microstructureFileLocal) # target filename is /dst/dir/file.ext
+setInputVariable(microstructureFileLocal,'targetDensity_SI','1e13')
+setInputVariable(microstructureFileLocal,'radiusDistributionMean_SI','5e-08')
+setInputVariable(microstructureFileLocal,'radiusDistributionStd_SI','1e-09')
+setInputVariable(microstructureFileLocal,'areVacancyLoops','0')
+setInputVector(microstructureFileLocal,'allowedGrainIDs',np.array([-1]),'set of grain IDs where loops are allowed. Use -1 for all grains')
+setInputVector(microstructureFileLocal,'allowedPlaneIDs',np.array([-1]),'# set of plane IDs containing the loops. Use -1 for random plane')
 
 print("\033[1;32mCreating  initialMicrostructureFile\033[0m")
 with open('inputFiles/initialMicrostructure.txt', "w") as initialMicrostructureFile:
-    initialMicrostructureFile.write('microstructureFile='+microstructureFile1+';\n')
-#    initialMicrostructureFile.write('microstructureFile='+microstructureFile2+';\n')
-#    initialMicrostructureFile.write('microstructureFile='+microstructureFile3+';\n')
+    for micrFile in microstructureFiles:
+        initialMicrostructureFile.write('microstructureFile='+micrFile+';\n')

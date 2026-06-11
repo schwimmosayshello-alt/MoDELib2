@@ -178,7 +178,7 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def_readonly("evlFolder", &DDtraitsIO::evlFolder)
         .def_readonly("auxFolder", &DDtraitsIO::auxFolder)
         .def_readonly("fFolder", &DDtraitsIO::fFolder)
-        .def_readonly("ddFile", &DDtraitsIO::ddFile)
+        .def_readonly("dcFile", &DDtraitsIO::dcFile)
         .def_readonly("fFile", &DDtraitsIO::fFile)
         .def_readonly("flabFile", &DDtraitsIO::flabFile)
         .def_readonly("polyFile", &DDtraitsIO::polyFile)
@@ -229,6 +229,7 @@ PYBIND11_MODULE(pyMoDELib,m)
         .def_readonly("Tm", &PolycrystallineMaterialBase::Tm)
         .def_readonly("mu_SI", &PolycrystallineMaterialBase::mu_SI)
         .def_readonly("nu", &PolycrystallineMaterialBase::nu)
+        .def_readonly("E_SI", &PolycrystallineMaterialBase::E_SI)
         .def_readonly("rho_SI", &PolycrystallineMaterialBase::rho_SI)
         .def_readonly("cs_SI", &PolycrystallineMaterialBase::cs_SI)
         .def_readonly("b_SI", &PolycrystallineMaterialBase::b_SI)
@@ -412,6 +413,7 @@ PYBIND11_MODULE(pyMoDELib,m)
              const std::shared_ptr<GlidePlaneType>&>())
         .def("solidAngle",&LoopType::solidAngle)
         .def("meshed",&LoopType::meshed)
+        .def("slippedArea",&LoopType::slippedArea)
     ;
     
     py::class_<MeshedDislocationLoop
@@ -455,6 +457,7 @@ PYBIND11_MODULE(pyMoDELib,m)
     py::class_<DDconfigIO<3>
     /*      */>(m,"DDconfigIO")
         .def(py::init<const std::string&>())
+        .def("read", &DDconfigIO<3>::read)
     ;
     
     py::class_<MicrostructureGenerator
@@ -598,6 +601,26 @@ PYBIND11_MODULE(pyMoDELib,m)
                 )
         .def_readwrite("loopSides", &FrankLoopsIndividualSpecification::loopSides)
         .def_readwrite("isVacancyLoop", &FrankLoopsIndividualSpecification::isVacancyLoop)
+    ;
+    
+    py::class_<PlanarLoopIndividualSpecification
+    /*      */>(m,"PlanarLoopIndividualSpecification")
+        .def(py::init<>())
+        .def(py::init<const std::string&>())
+        .def_readwrite("burgers", &PlanarLoopIndividualSpecification::burgers)
+        .def_readwrite("normal", &PlanarLoopIndividualSpecification::normal)
+        .def_property( "loopPoints",
+                    [](const PlanarLoopIndividualSpecification& self )
+                    {// Getter
+                        return self.loopPoints;
+                    },
+                    []( PlanarLoopIndividualSpecification& self, const Eigen::Ref<const Eigen::Matrix<double,Eigen::Dynamic,3>>& val )
+                    {// Setter
+                        self.loopPoints = val;
+                    }
+                )
+        .def_readwrite("allowOutside", &PlanarLoopIndividualSpecification::allowOutside)
+        .def_readwrite("allowOverlap", &PlanarLoopIndividualSpecification::allowOverlap)
     ;
     
     py::class_<StackingFaultTetrahedraDensitySpecification

@@ -13,7 +13,7 @@
 namespace model
 {
     FrankLoopsDensitySpecification::FrankLoopsDensitySpecification():
-    /* init */ MicrostructureSpecificationBase("PeriodicDipole","Density")
+    /* init */ MicrostructureSpecificationBase("FrankLoops","Density")
     /* init */,targetDensity(0.0)
     /* init */,numberOfSides(0)
     /* init */,radiusDistributionMean(0.0)
@@ -27,7 +27,7 @@ namespace model
 
     FrankLoopsDensitySpecification::FrankLoopsDensitySpecification(const std::string& fileName):
     /* init */ MicrostructureSpecificationBase("FrankLoops","Density",fileName)
-    /* init */,targetDensity(this->parser->readScalar<double>("targetDensity",true))
+    /* init */,targetDensity(this->parser->readScalar<double>("targetDensity_SI",true))
     /* init */,numberOfSides(targetDensity>0.0? this->parser->readScalar<int>("numberOfSides",true) : 0)
     /* init */,radiusDistributionMean(targetDensity>0.0? this->parser->readScalar<double>("radiusDistributionMean_SI",true) : 0.0)
     /* init */,radiusDistributionStd(targetDensity>0.0? this->parser->readScalar<double>("radiusDistributionStd_SI",true) : 0.0)

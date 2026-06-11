@@ -46,25 +46,11 @@ enabledSecondPhases=;
 
 
 # ClusterDynamics
-computeReactions=1;
-doseRate_dpaPerSec= 1e-7; # [dpa/s] irradiation dose rate
-mobileSpeciesVector= -1 +1 +2;	 # single vacancies
-mobileSpeciesRelRelaxVol=0.405 1.2 1.2; # [-] relative vacancy relaxation volume
-mobileSpeciesEnergyFormation_eV=1.5 3.0 6.0; # [eV] vacancy formation energy
-mobileSpeciesEnergyMigration_eV=0.61 0.0 0.0 0.61 0.0 0.61
-                                0.19 0.0 0.0 0.19 0.0 0.19
-                                0.23 0.0 0.0 0.23 0.0 0.54; # [eV] migration energies, components [11 12 13 22 23 33]
-mobileSpeciesD0_SI=1.8e-6 0.0 0.0 1.8e-6 0.0 1.8e-6
-                   2.8e-7 0.0 0.0 2.8e-7 0.0 2.8e-7
-                   3.2e-7 0.0 0.0 3.2e-7 0.0 2.6e-6; # [m^2/s] pre-exponential diffusion coefficients, components [11 12 13 22 23 33]
-mobileSpeciesCascadeFractions=1.0 0.6 0.4; 
-mobileSpeciesSurvivingEfficiency=0.01; # Surviving efficiency
-otherSinks_SI=0.0 0.0 0.0;                   
-reactionPrefactorMap= -1 -1 0.0
-             -1  1 2.856
-             -1  2 1.0
-              1  1 1.0
-              1  2 0.0
-              2  2 0.0; # Reaction map between species (species,species,reaction prefactor) 2.856
-discreteDislocationBias =1.0 1.05 1.05
-            1.2 1.2 1.2; # [-] Bias for interaction between dislocations and mobile species. [vloop; iloop] , [v i 2i ...]
+doseRate_dpaPerSec= 0.0e-7; # [dpa/s] irradiation dose rate
+mobileSpeciesVector= -1;	 # single vacancies
+mobileSpeciesRelRelaxVol=0.405; # [-] relative vacancy relaxation volume
+mobileSpeciesEnergyFormation_eV=1.5; # [eV] vacancy formation energy
+mobileSpeciesEnergyMigration_eV=0.61 0.0 0.0 0.61 0.0 0.61; # [eV] migration energies, components [11 12 13 22 23 33]
+mobileSpeciesD0_SI=1.8e-6 0.0 0.0 1.8e-6 0.0 1.8e-6; # [m^2/s] pre-exponential diffusion coefficients, components [11 12 13 22 23 33]
+otherSinks_SI=0.0;                   
+discreteDislocationBias = 1.0 1.0;

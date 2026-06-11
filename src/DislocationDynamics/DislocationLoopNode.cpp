@@ -78,9 +78,9 @@ namespace model
         if (this->prev.first)
         {
             auto currentPrev(this->prev.first);
-            while (currentPrev->periodicPlaneEdge.first) //First is sufficient
+            while (currentPrev->periodicPlaneEdge.first && currentPrev->periodicPlaneEdge.first->twin) //First is sufficient
             {
-                if (currentPrev == this)   //This if statement can return the current node as periodicPrev. Discuss this with Dr. Po
+                if (currentPrev == this)
                 {
                     return nullptr;
                 }
@@ -97,9 +97,9 @@ namespace model
         if (this->next.first)
         {
             auto currentNext(this->next.first);
-            while (currentNext->periodicPlaneEdge.first)
+            while (currentNext->periodicPlaneEdge.first && currentNext->periodicPlaneEdge.first->twin)
             {
-                if (currentNext == this)  //This if statement can return the current node as periodicNext. Discuss this with Dr. Po
+                if (currentNext == this)
                 {
                     return nullptr;
                 }

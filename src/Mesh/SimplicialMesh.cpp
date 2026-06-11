@@ -117,6 +117,7 @@ namespace model
         updateRegionBoundaries();
         identifyParallelFaces(periodicFaceIDs);
         
+        // Check that all simplices have been accounted for
         size_t bndFaceSimplexSum=0;
         for(auto region : MeshRegionObserverType::regions())
         {// Sum number of external faces for final check
@@ -127,11 +128,6 @@ namespace model
                 std::cout<<"    face "<<face.second->sID<<": size="<<face.second->size()<<",hullPts="<<face.second->convexHull().size()<<", outNormal "<<face.second->outNormal().transpose()<<std::endl;
                 bndFaceSimplexSum+=face.second->size();
             }
-//            std::cout<<"    parallel faces:"<<std::endl;
-//            for(const auto& pair : region.second->parallelFaces())
-//            {
-//                std::cout<<"      "<<pair.first<<"<->"<<pair.second<<std::endl;
-//            }
         }
         
         size_t rgnBndFaceSimplexSum=0;

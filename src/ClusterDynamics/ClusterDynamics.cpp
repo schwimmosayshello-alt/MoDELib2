@@ -88,7 +88,7 @@ typename ClusterDynamics<dim>::UniformControllerContainerType ClusterDynamics<di
     /* init */ MicrostructureBase<dim>("ClusterDynamics",mc)
     /* init */,cdp(this->microstructures.ddBase)
 //    /* init */,ClusterDynamicsBase<dim>(this->microstructures.ddBase)
-    /* init */,useClusterDynamicsFEM(this->microstructures.ddBase.fe? bool(TextFileParser(this->microstructures.ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("useClusterDynamicsFEM",true)) : false )
+    /* init */,useClusterDynamicsFEM(this->microstructures.ddBase.fe? bool(TextFileParser(this->microstructures.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/ClusterDynamics.txt").readScalar<int>("useClusterDynamicsFEM",true)) : false )
     /* init */,clusterDynamicsFEM(useClusterDynamicsFEM?  new ClusterDynamicsFEM<dim>(this->microstructures.ddBase,cdp) : nullptr)
     /* init */,uniformControllers(useClusterDynamicsFEM? UniformControllerContainerType() : getUniformControllers(this->microstructures.ddBase,this->cdp))
 //    /* init */,nodeListInternalExternal(this->microstructures.ddBase.isPeriodicDomain ? -1 : this->microstructures.ddBase.fe->template createNodeList<ExternalAndInternalBoundary>())
@@ -174,6 +174,12 @@ void ClusterDynamics<dim>::applyBoundaryConditions()
         {
 
         }
+    }
+
+    template<int dim>
+    void ClusterDynamics<dim>::reSolve()
+    {
+        solve();
     }
 
     template<int dim>

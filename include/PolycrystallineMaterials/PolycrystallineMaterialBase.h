@@ -35,6 +35,7 @@ namespace model
         const double mu1_SI;    // [Pa/K]
         const double mu_SI;     // temperature-dependent shear modulus mu=mu0+mu1*T [Pa]
         const double nu;        // Poisson's ratio
+        const double E_SI;        // Poisson's ratio
         const double rho_SI;    // mass density [Kg/m^3]
         const double cs_SI;     // shear wave speed [m/s]
         const double b_SI;      // Burgers vector [m]

@@ -66,7 +66,7 @@ namespace model
 
 #else // COMPILED WITHOUT PYBIND11
     DislocationMobilityPy::DislocationMobilityPy(const PolycrystallineMaterialBase& material,const std::string& pyModuleName_in) :
-    /* init */ DislocationMobilityBase("Py mobility for "+material.materialName)
+    /* init */ DislocationMobility("DislocationMobilityPy for "+material.materialName)
     /* init */,kB(kB_SI/material.mu_SI/std::pow(material.b_SI,3))
     /* init */,mu_SI(material.mu_SI)
     /* init */,Tm(material.Tm)

@@ -163,8 +163,8 @@ typename DislocationNode<dim>::VectorDim DislocationNode<dim>::climbDirection() 
 
         }
         
-        if(velocity.squaredNorm()>FLT_EPSILON)
-        {
+//        if(velocity.squaredNorm()>FLT_EPSILON)
+//        {
             
             
             if(!this->network().ddBase.isPeriodicDomain)
@@ -189,14 +189,14 @@ typename DislocationNode<dim>::VectorDim DislocationNode<dim>::climbDirection() 
                 velocity-=velocity.dot(vec)*vec;
             }
             
-        }
+//        }
     }
     
     template <int dim>
     void DislocationNode<dim>::set_V(const VectorDim& vNew,const bool& isClimbingStep)
     {
         
-        double emaStrength=0.5;
+        double emaStrength=0.0;
                 
         vOld=velocity; // store current value of velocity before updating
         

@@ -63,6 +63,18 @@ namespace model
     }
 
     template <int dim>
+    void MicrostructureContainer<dim>::reSolve()
+    {
+        for(auto& pair : microstructures())
+        {
+            const auto t0= std::chrono::system_clock::now();
+            std::cout<<"re-Solving "<<pair->tag<<":"<<std::flush;
+            pair->reSolve();
+            std::cout<<greenColor<<" ["<<(std::chrono::duration<double>(std::chrono::system_clock::now()-t0)).count()<<" sec]"<<defaultColor<<std::endl;
+        }
+    }
+
+    template <int dim>
     double MicrostructureContainer<dim>::getDt() const
     {
         const auto t0= std::chrono::system_clock::now();

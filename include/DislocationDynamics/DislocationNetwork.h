@@ -111,6 +111,7 @@ namespace model
 
     private:
         
+        static std::set<int> getSubCyclingSet(const std::vector<int> &inpVector);
         std::shared_ptr<InclusionMicrostructure<dim>> _inclusions;
 
     public:
@@ -139,7 +140,7 @@ namespace model
         const bool use_velocityFilter;
         const double velocityReductionFactor;
         const Eigen::Matrix<double,Eigen::Dynamic,dim> nodalVelocityConstraints;
-        
+        const std::set<int> subcyclingBins;
         
         const int verboseDislocationNode;
             
@@ -147,6 +148,7 @@ namespace model
                 
         void initializeConfiguration(const DDconfigIO<dim>& configIO,const std::ofstream& f_file,const std::ofstream& F_labels) override;
         void solve() override;
+        void reSolve() override;
         double getDt() const override;
         void output(DDconfigIO<dim>& configIO,DDauxIO<dim>& auxIO,std::ofstream& f_file,std::ofstream& F_labels) const override;
         void updateConfiguration() override;

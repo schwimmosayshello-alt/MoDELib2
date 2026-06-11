@@ -414,6 +414,34 @@ namespace model
     }
 
     template <int dim>
+    bool DislocationLoop<dim>::flippedInsideOut(const int& N,const double& areaThreshold) const
+    {/*! \return true if during the current time step
+      *   This is meant to be called between DislocationNetwork::moveNodes and DislocationNetwork::updateGeometry,
+      *    In this case, nodes have moved but right-handed normal has not been updated
+      */
+        
+        for(int n=0;n<N;++n)
+        {
+            const double du((1.0*n)/N);
+        
+        
+        VectorDim newAreaVector(VectorDim::Zero());
+        const VectorDim P0((*this->loopLinks().begin())->source->get_P()-du*(*this->loopLinks().begin())->source->get_deltaP());
+        for(const auto& loopLink : this->loopLinks())
+        {
+            newAreaVector+= 0.5*(loopLink->source->get_P()-du*loopLink->source->get_deltaP()-P0).cross(loopLink->sink->get_P()-du*loopLink->sink->get_deltaP()-loopLink->source->get_P()+du*loopLink->source->get_deltaP());
+            }
+            const double newArea(newAreaVector.norm());
+            if(newArea<areaThreshold && newAreaVector.dot(_rightHandedUnitNormal)>=0.0)
+            {// area fell close to zero and rightHandedNormal did not change
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    template <int dim>
     void DislocationLoop<dim>::updateGeometry()
     {
         VerboseDislocationLoop(2,"DislocationLoop "<<this->sID<<" updateGeometry"<<std::endl;);

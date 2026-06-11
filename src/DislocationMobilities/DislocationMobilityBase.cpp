@@ -14,7 +14,7 @@ namespace model
 {
 
     StochasticForceGenerator::StochasticForceGenerator(const DDtraitsIO& traitsIO):
-    stochasticForceSeed(TextFileParser(traitsIO.ddFile).readScalar<int>("stochasticForceSeed",true))
+    stochasticForceSeed(TextFileParser(traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("stochasticForceSeed",true))
     , seed(stochasticForceSeed<0?std::chrono::system_clock::now().time_since_epoch().count():stochasticForceSeed)
     {
         

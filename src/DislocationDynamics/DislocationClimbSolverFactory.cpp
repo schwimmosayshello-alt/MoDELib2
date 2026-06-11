@@ -20,7 +20,7 @@ namespace model
     template <typename DislocationNetworkType>
     DislocationClimbSolverBase<DislocationNetworkType>::DislocationClimbSolverBase(const DislocationNetworkType& DN,const ClusterDynamics<dim>* const CD_in) :
     /* init */ DislocationVelocitySolverBase<DislocationNetworkType>(DN)
-    /* init */,glideEquilibriumRate(TextFileParser(DN.ddBase.simulationParameters.traitsIO.ddFile).readScalar<double>("glideEquilibriumRate",true))
+    /* init */,glideEquilibriumRate(TextFileParser(DN.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<double>("glideEquilibriumRate",true))
     /* init */,CD(CD_in)
     /* init */,vClimbRef(getVclimbRef())
     {

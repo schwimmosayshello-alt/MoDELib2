@@ -17,7 +17,7 @@ namespace model
 
     template <typename DislocationNetworkType>
     BaseCrossSlipModel<DislocationNetworkType>::BaseCrossSlipModel(const DDtraitsIO& traitsIO) :
-    /* init */ crossSlipDeg(TextFileParser(traitsIO.ddFile).readScalar<double>("crossSlipAngle_deg",true))
+    /* init */ crossSlipDeg(TextFileParser(traitsIO.inputFilesFolder+"/DD.txt").readScalar<double>("crossSlipAngle_deg",true))
     /* init */,sinCrossSlip(std::sin(crossSlipDeg*std::numbers::pi/180.0))
     {
         

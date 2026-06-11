@@ -16,11 +16,11 @@ namespace model
     template <typename DislocationNetworkType>
     DislocationNetworkRemesh<DislocationNetworkType>::DislocationNetworkRemesh(DislocationNetworkType& DN_in):
     /* init */ DN(DN_in)
-    /* init */,Lmax(TextFileParser(DN.ddBase.simulationParameters.traitsIO.ddFile).readScalar<double>("Lmax",true))
-    /* init */,Lmin(TextFileParser(DN.ddBase.simulationParameters.traitsIO.ddFile).readScalar<double>("Lmin",true))
-    /* init */,absoluteAreaThreshold(TextFileParser(DN.ddBase.simulationParameters.traitsIO.ddFile).readScalar<double>("absoluteAreaThreshold",true))
-    /* init */,relativeAreaThreshold(TextFileParser(DN.ddBase.simulationParameters.traitsIO.ddFile).readScalar<double>("relativeAreaThreshold",true))
-    /* init */,remeshFrequency(TextFileParser(DN.ddBase.simulationParameters.traitsIO.ddFile).readScalar<int>("remeshFrequency",true))
+    /* init */,Lmax(TextFileParser(DN.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<double>("Lmax",true))
+    /* init */,Lmin(TextFileParser(DN.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<double>("Lmin",true))
+    /* init */,absoluteAreaThreshold(TextFileParser(DN.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<double>("absoluteAreaThreshold",true))
+    /* init */,relativeAreaThreshold(TextFileParser(DN.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<double>("relativeAreaThreshold",true))
+    /* init */,remeshFrequency(TextFileParser(DN.ddBase.simulationParameters.traitsIO.inputFilesFolder+"/DD.txt").readScalar<int>("remeshFrequency",true))
     {
         
         assert(Lmin<=Lmax);

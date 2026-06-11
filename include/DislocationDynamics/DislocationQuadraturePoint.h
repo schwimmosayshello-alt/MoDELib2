@@ -65,6 +65,7 @@ namespace model
         const VectorDim rl;                         // unit tangent dr/dl
         const double dL;                            // line length corresponding to this quadrature point
         
+        MatrixDim internalStress;
         MatrixDim stress;
         VectorDim pkForce;
         VectorDim stackingFaultForce;

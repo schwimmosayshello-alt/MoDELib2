@@ -33,6 +33,7 @@ namespace model
     /* init */,j(ru.norm())
     /* init */,rl(j > FLT_EPSILON ? (ru/j).eval() : VectorDim::Zero())
     /* init */,dL(j*weight)
+    /* init */,internalStress(MatrixDim::Zero())
     /* init */,stress(MatrixDim::Zero())
     /* init */,pkForce(VectorDim::Zero())
     /* init */,stackingFaultForce(VectorDim::Zero())
@@ -222,6 +223,17 @@ namespace model
     void DislocationQuadraturePoint<dim>::updateForcesAndVelocities(const LinkType& parentSegment,const bool& isClimbStep)
     {
         
+        // Add other stress contributions, and compute PK force
+        MatrixDim externalStress(MatrixDim::Zero());
+        for(const auto& microstructure : parentSegment.network().microstructures)
+        {
+            if(microstructure.get()!=static_cast<const MicrostructureBase<dim>* const>(&parentSegment.network()))
+            {// not the DD physics, which we already accounted for above
+                externalStress += microstructure->stress(r,nullptr,nullptr,parentSegment.source->includingSimplex());
+            }
+        }
+        stress=internalStress+externalStress;
+        
         const bool useSplineTangents(false);
         if(parentSegment.loopLinks().size()==1 && useSplineTangents)
         {
@@ -266,7 +278,14 @@ namespace model
                     cCD += microstructure->mobileConcentration(r,nullptr,nullptr,parentSegment.source->includingSimplex());
                 }
             }
-            cDD=parentSegment.network().climbSolver->CD->cdp.dislocationMobileConcentration(parentSegment.burgers(),rl,pkForce,stress);
+//            cDD=parentSegment.network().climbSolver->CD->cdp.dislocationMobileConcentration(parentSegment.burgers(),rl,pkForce,stress);
+            cDD=parentSegment.network().climbSolver->CD->cdp.dislocationMobileConcentration(parentSegment.burgers(),rl,pkForce+lineTensionForce+stackingFaultForce,stress);
+
+            //            std::cout<<"concentrations:"<<std::endl;
+//            std::cout<<"cCD="<<cCD<<std::endl;
+//            std::cout<<"cDD="<<cDD<<std::endl;
+//            std::cout<<"cEQ="<<parentSegment.network().climbSolver->CD->cdp.equilibriumMobileConcentration(stress.trace())<<std::endl;
+//            std::cout<<"cEQ0="<<parentSegment.network().climbSolver->CD->cdp.equilibriumMobileConcentration(0.0)<<std::endl;
         }
     }
 
@@ -362,7 +381,7 @@ namespace model
                 for (auto& qPoint : quadraturePoints())
                 {
                     //                    std::cout<<"qPoint="<<qPoint.qID<<", r="<<qPoint.r.transpose()<<std::endl;
-                    qPoint.stress += ss.stress(qPoint.r+shift);
+                    qPoint.internalStress += ss.stress(qPoint.r+shift);
                 }
             }
             else if(dr<100.0)
@@ -371,7 +390,7 @@ namespace model
                 const MatrixDim stressSink(ss.stress(parentSegment.sink->get_P()+shift));
                 for (auto& qPoint : quadraturePoints())
                 {
-                    qPoint.stress += (1.0-qPoint.abscissa)*stressSource+qPoint.abscissa*stressSink;
+                    qPoint.internalStress += (1.0-qPoint.abscissa)*stressSource+qPoint.abscissa*stressSink;
                 }
             }
             else
@@ -379,7 +398,7 @@ namespace model
                 const MatrixDim stressC(ss.stress(c+shift));
                 for (auto& qPoint : quadraturePoints())
                 {
-                    qPoint.stress += stressC;
+                    qPoint.internalStress += stressC;
                 }
             }
             
@@ -519,7 +538,7 @@ namespace model
                     for (auto& qPoint : quadraturePoints())
                     {
                         const auto noiseVal(slipSystem.gridInterp(qPoint.r-glidePlane.P));
-                        qPoint.stress += std::get<0>(noiseVal);
+                        qPoint.internalStress += std::get<0>(noiseVal);
                     }
                 }
             }
@@ -581,14 +600,14 @@ namespace model
                     }
                 }
                 
-                // Add other stress contributions, and compute PK force
-                for(const auto& microstructure : parentSegment.network().microstructures)
-                {
-                    if(microstructure.get()!=static_cast<const MicrostructureBase<dim>* const>(&parentSegment.network()))
-                    {// not the DD physics, which we already accounted for above
-                        qPoint.stress += microstructure->stress(qPoint.r,nullptr,nullptr,parentSegment.source->includingSimplex());
-                    }
-                }
+//                // Add other stress contributions, and compute PK force
+//                for(const auto& microstructure : parentSegment.network().microstructures)
+//                {
+//                    if(microstructure.get()!=static_cast<const MicrostructureBase<dim>* const>(&parentSegment.network()))
+//                    {// not the DD physics, which we already accounted for above
+//                        qPoint.stress += microstructure->stress(qPoint.r,nullptr,nullptr,parentSegment.source->includingSimplex());
+//                    }
+//                }
                 
                 qPoint.updateForcesAndVelocities(parentSegment,isClimbStep);
             }

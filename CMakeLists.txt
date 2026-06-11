@@ -9,6 +9,7 @@ project(MoDELib VERSION 2.0.0 LANGUAGES C CXX)
 
 option(USE_PYBIND11 "enables pybind11" ON)
 option(BUILD_TOOLS "builds tools" ON)
+option(BUILD_TESTS "builds tests" ON)
 
 list(APPEND CMAKE_PREFIX_PATH "/Users/Giacomo/Applications/Qt/6.10.0/macos/lib/cmake")
 #set(VTK_DIR "/Users/anon/Programs/VTK/vtk/build")
@@ -18,8 +19,8 @@ list(APPEND CMAKE_BUILD_RPATH ${RPATH})
 set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -march=native -fopenmp -O3 -march=native -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-parameter") # -Wno-class-memaccess
-#set(CMAKE_C_FLAGS "-Wall -Wextra -march=native -Ofast -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-parameter")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -march=native -fopenmp -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-parameter") # -Wno-class-memaccess
+#set(CMAKE_C_FLAGS "-Wall -Wextra -march=native -O3 -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-parameter")
 #set(CMAKE_AUTOMOC ON)
 #set(CMAKE_AUTORCC ON)
 #set(CMAKE_AUTOUIC ON)
@@ -132,5 +133,10 @@ target_link_libraries(MoDELib PUBLIC ${FFTW3_LIBRARIES} ${pybind11_LIBRARIES} ${
 
 if(BUILD_TOOLS)
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tools tools)
+else()
+endif()
+
+if(BUILD_TESTS)
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/tests tests)
 else()
 endif()
