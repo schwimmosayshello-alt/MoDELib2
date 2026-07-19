@@ -34,10 +34,12 @@ jobs:
           cd doxygen/
           doxygen Doxyfile
 
-      - name: Debug - list generated XML
+      - name: Debug - list Doxygen output
         run: |
-          echo "== doxygen/dox/HTML/xml contents =="
-          ls -la doxygen/dox/HTML/xml/
+          echo "== doxygen/dox/ contents =="
+          ls -la doxygen/dox/
+          echo "== doxygen/dox/HTML (if exists) =="
+          ls -la doxygen/dox/HTML/ 2>/dev/null || echo "HTML folder not found"
 
       - name: Convert XML to Markdown
         run: |
