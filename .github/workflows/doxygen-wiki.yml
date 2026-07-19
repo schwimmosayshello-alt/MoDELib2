@@ -46,24 +46,12 @@ jobs:
           cd doxygen/
           doxygen Doxyfile
 
-      - name: Debug - list generated XML
-        run: |
-          echo "== doxygen/HTML/xml contents =="
-          ls -la doxygen/HTML/xml/
-
       - name: Convert XML to Markdown
         run: |
           mkdir -p wiki-output
           mkdir -p doxybook-templates
           touch doxybook-templates/meta.tmpl
           doxybook2 --input doxygen/HTML/xml --output wiki-output --templates doxybook-templates
-
-      - name: Debug - check Classes and Files contents
-        run: |
-          echo "== wiki-output/Classes =="
-          ls -la wiki-output/Classes/
-          echo "== wiki-output/Files =="
-          ls -la wiki-output/Files/
 
       - name: Checkout wiki repo
         uses: actions/checkout@v4
