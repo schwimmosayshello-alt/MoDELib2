@@ -30,14 +30,16 @@ jobs:
           sudo mv doxybook2/bin/doxybook2 /usr/local/bin/
 
       - name: Run Doxygen
-        run: doxygen Doxyfile
+        run: |
+          cd doxygen/dox
+          doxygen Doxyfile
 
       - name: Convert XML to Markdown
         run: |
           mkdir -p wiki-output
           mkdir -p doxybook-templates
           touch doxybook-templates/meta.tmpl
-          doxybook2 --input xml --output wiki-output --templates doxybook-templates
+          doxybook2 --input doxygen/dox/HTML/xml --output wiki-output --templates doxybook-templates
 
       - name: Debug - check Classes and Files contents
         run: |
