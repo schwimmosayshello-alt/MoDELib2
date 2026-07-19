@@ -34,19 +34,17 @@ jobs:
           cd doxygen/
           doxygen Doxyfile
 
-      - name: Debug - list Doxygen output
+      - name: Debug - list generated XML
         run: |
-          echo "== doxygen/dox/ contents =="
-          ls -la doxygen/dox/
-          echo "== doxygen/dox/HTML (if exists) =="
-          ls -la doxygen/dox/HTML/ 2>/dev/null || echo "HTML folder not found"
+          echo "== doxygen/HTML/xml contents =="
+          ls -la doxygen/HTML/xml/
 
       - name: Convert XML to Markdown
         run: |
           mkdir -p wiki-output
           mkdir -p doxybook-templates
           touch doxybook-templates/meta.tmpl
-          doxybook2 --input doxygen/dox/HTML/xml --output wiki-output --templates doxybook-templates
+          doxybook2 --input doxygen/HTML/xml --output wiki-output --templates doxybook-templates
 
       - name: Debug - check Classes and Files contents
         run: |
