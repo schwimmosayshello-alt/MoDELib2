@@ -34,6 +34,11 @@ jobs:
           cd doxygen/
           doxygen Doxyfile
 
+      - name: Debug - list generated XML
+        run: |
+          echo "== doxygen/dox/HTML/xml contents =="
+          ls -la doxygen/dox/HTML/xml/
+
       - name: Convert XML to Markdown
         run: |
           mkdir -p wiki-output
