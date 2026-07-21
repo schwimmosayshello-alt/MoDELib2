@@ -53,13 +53,17 @@ jobs:
           touch doxybook-templates/meta.tmpl
           doxybook2 --input doxygen/HTML/xml --output wiki-output --templates doxybook-templates
 
-      - name: Debug - check existing index files
+      - name: Debug - compare file counts
         run: |
-          echo "== index_files.md =="
-          cat wiki-output/index_files.md
-          echo ""
-          echo "== index_classes.md =="
-          cat wiki-output/index_classes.md
+          echo "== Total lines in index_files.md =="
+          wc -l wiki-output/index_files.md
+          echo "== Total .md files in wiki-output/Files/ =="
+          ls wiki-output/Files/*.md | wc -l
+          echo "== Total lines in our generated wiki/Files.md =="
+          wc -l wiki/Files.md
+          echo "== Any 'file [' entries in index_files.md not matched by our sed? =="
+          grep -c '^\* \*\*file \[' wiki-output/index_files.md
+          grep -c '^\* \*\*file \[' wiki/Files.md
 
       - name: Checkout wiki repo
         uses: actions/checkout@v4
