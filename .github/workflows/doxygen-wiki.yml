@@ -25,7 +25,6 @@ jobs:
           tar -xzf doxygen-1.9.1.linux.bin.tar.gz
           sudo cp doxygen-1.9.1/bin/doxygen /usr/local/bin/doxygen
 
-          # Install the old LLVM/Clang dependency chain this Doxygen build needs
           wget http://archive.ubuntu.com/ubuntu/pool/main/libf/libffi/libffi7_3.3-4_amd64.deb
           wget http://archive.ubuntu.com/ubuntu/pool/main/l/llvm-toolchain-9/libllvm9_9.0.1-12_amd64.deb
           wget http://archive.ubuntu.com/ubuntu/pool/universe/l/llvm-toolchain-9/libclang1-9_9.0.1-12_amd64.deb
@@ -34,6 +33,7 @@ jobs:
 
           sudo apt-get update && sudo apt-get install -y graphviz
           doxygen --version
+          
       - name: Install doxybook2
         run: |
           DOXYBOOK2_VERSION=$(curl -s https://api.github.com/repos/matusnovak/doxybook2/releases/latest | grep '"tag_name"' | sed -E 's/.*"([^"]+)".*/\1/')
@@ -53,6 +53,14 @@ jobs:
           touch doxybook-templates/meta.tmpl
           doxybook2 --input doxygen/HTML/xml --output wiki-output --templates doxybook-templates
 
+      - name: Debug - check existing index files
+        run: |
+          echo "== index_files.md =="
+          cat wiki-output/index_files.md
+          echo ""
+          echo "== index_classes.md =="
+          cat wiki-output/index_classes.md
+
       - name: Checkout wiki repo
         uses: actions/checkout@v4
         with:
@@ -62,14 +70,10 @@ jobs:
       - name: Copy generated docs into wiki
         run: |
           rm -rf wiki/*
-
-          # Copy hand-written @page pages directly (flat, one per sidebar entry)
           cp -r wiki-output/Pages/* wiki/
-
           mkdir -p wiki/images
           cp -r dox/Images/* wiki/images/ 2>/dev/null || echo "No images to copy"
 
-          # --- Classes: individual pages + hub page ---
           if [ -d "wiki-output/Classes" ] && compgen -G "wiki-output/Classes/*.md" > /dev/null; then
             { echo "# Classes"; echo; } > wiki/Classes.md
             for f in wiki-output/Classes/*.md; do
@@ -81,7 +85,6 @@ jobs:
             done
           fi
 
-          # --- Files: individual pages + hub page (skip dir_ overviews and empty stubs) ---
           if [ -d "wiki-output/Files" ] && compgen -G "wiki-output/Files/*.md" > /dev/null; then
             { echo "# Files"; echo; } > wiki/Files.md
             for f in wiki-output/Files/*.md; do
@@ -96,7 +99,6 @@ jobs:
             done
           fi
 
-          # --- Home page ---
           if [ -f "wiki/_home.md" ]; then
             mv wiki/_home.md wiki/Home.md
           else
@@ -106,7 +108,6 @@ jobs:
             echo "- [Files](Files)" >> wiki/Home.md
           fi
 
-          # --- Sidebar: every .dox Page individually, Classes/Files collapsed ---
           {
             echo "- [Home](Home)"
             for f in wiki-output/Pages/*.md; do
