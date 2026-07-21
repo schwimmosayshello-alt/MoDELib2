@@ -67,10 +67,10 @@ jobs:
           cp -r dox/Images/* wiki/images/ 2>/dev/null || echo "No images to copy"
 
           if [ -f "wiki-output/index_files.md" ]; then
-            sed -n '/^# /,$p' wiki-output/index_files.md | sed -E 's#Files/##g; s/\.md#/#/g' > wiki/Files.md
-          fi
-          if [ -d "wiki-output/Files" ]; then
-            cp wiki-output/Files/*.md wiki/ 2>/dev/null || true
+            sed -n '/^# /,$p' wiki-output/index_files.md \
+              | sed -E 's#Files/##g; s/\.md#/#/g' \
+              | sed -E 's/\[[a-z]+\]\(([^)#]+)#/[\1]\(\1#/g' \
+              > wiki/Files.md
           fi
           
           if [ -f "wiki-output/index_classes.md" ]; then
@@ -110,16 +110,3 @@ jobs:
           git add .
           git diff --staged --quiet || git commit -m "Auto-update docs from Doxygen ($GITHUB_SHA)"
           git push
-
-      - name: Debug - compare file counts
-        run: |
-          echo "== Total lines in index_files.md =="
-          wc -l wiki-output/index_files.md
-          echo "== Total .md files in wiki-output/Files/ =="
-          ls wiki-output/Files/*.md | wc -l
-          echo "== Total lines in our generated wiki/Files.md =="
-          wc -l wiki/Files.md
-          echo "== Any 'file [' entries in index_files.md not matched by our sed? =="
-          grep -c '^\* \*\*file \[' wiki-output/index_files.md
-          grep -c '^\* \*\*file \[' wiki/Files.md
-
