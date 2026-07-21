@@ -74,29 +74,18 @@ jobs:
           mkdir -p wiki/images
           cp -r dox/Images/* wiki/images/ 2>/dev/null || echo "No images to copy"
 
-          if [ -d "wiki-output/Classes" ] && compgen -G "wiki-output/Classes/*.md" > /dev/null; then
-            { echo "# Classes"; echo; } > wiki/Classes.md
-            for f in wiki-output/Classes/*.md; do
-              filename=$(basename "$f")
-              cp "$f" "wiki/$filename"
-              title=$(grep -m 1 '^# ' "$f" | sed 's/^# //')
-              [ -z "$title" ] && title="${filename%.md}"
-              echo "- [$title](${filename%.md})" >> wiki/Classes.md
-            done
+          if [ -f "wiki-output/index_files.md" ]; then
+            sed -n '/^# /,$p' wiki-output/index_files.md | sed -E 's#Files/##g; s/\.md#/#/g' > wiki/Files.md
           fi
-
-          if [ -d "wiki-output/Files" ] && compgen -G "wiki-output/Files/*.md" > /dev/null; then
-            { echo "# Files"; echo; } > wiki/Files.md
-            for f in wiki-output/Files/*.md; do
-              filename=$(basename "$f")
-              [[ "$filename" == dir_* ]] && continue
-              lines=$(grep -v '^#' "$f" | grep -v '^\s*$' | wc -l)
-              [ "$lines" -lt 2 ] && continue
-              cp "$f" "wiki/$filename"
-              title=$(grep -m 1 '^# ' "$f" | sed 's/^# //')
-              [ -z "$title" ] && title="${filename%.md}"
-              echo "- [$title](${filename%.md})" >> wiki/Files.md
-            done
+          if [ -d "wiki-output/Files" ]; then
+            cp wiki-output/Files/*.md wiki/ 2>/dev/null || true
+          fi
+          
+          if [ -f "wiki-output/index_classes.md" ]; then
+            sed -n '/^# /,$p' wiki-output/index_classes.md | sed -E 's#Classes/##g; s/\.md#/#/g' > wiki/Classes.md
+          fi
+          if [ -d "wiki-output/Classes" ]; then
+            cp wiki-output/Classes/*.md wiki/ 2>/dev/null || true
           fi
 
           if [ -f "wiki/_home.md" ]; then
