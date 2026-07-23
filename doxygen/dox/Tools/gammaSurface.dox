@@ -1,0 +1,18 @@
+namespace model 
+{
+/*!
+
+\page gammaSurface gammaSurface
+ 
+This tool visualizes the gamma surface of a given material, or a map of the energy required to shear a material about a slip plane, for all six axes of a given material **(?)**.
+
+After running the program, a series of pdf's will be created -- one for each lattice plane -- that have three plots (and an empty plot): the top left one outputs a color mesh of the gamma surface over the slip plane, the top right one **does something with wave vectors**, and the bottom one shows a cross section of the gamma surface along two vectors input by the user for a more exact visualization.
+
+Scrolling down to the section labeled "Main," one can edit the material, temperature, crystal orientation (with the C2G variable **(?)**), and an array of initial simulation parameters, like the **(NR?)**, gamma surface resolution, and direction / number of points along the vector for the third plot.
+
+@section Section_One Section One
+
+
+ 
+*/
+}

@@ -1,0 +1,14 @@
+namespace model 
+{
+/*!
+
+\page periodicFields periodicFields
+ 
+WIP **I think it calculates the stresses in periodic domains with dislocation dipoles and as it's stretched in one direction it takes more and then less energy because it loops around? And it measures stress and stuff?**
+
+@section Section_One Section One
+
+
+ 
+*/
+}

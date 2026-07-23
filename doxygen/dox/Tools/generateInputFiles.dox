@@ -1,0 +1,26 @@
+namespace model 
+{
+/*!
+
+\page generateInputFiles_docs generateInputFiles.py
+ 
+If changes are desired after running **generateInputFiles.py**, one can always go into the **inputFiles** folder and make the according adjustments to the **.txt** files manually. Of these, the three that we will concern ourselves with in this tutorial are **polycrystal.txt**, **initialMicrostructure.txt**, the **.msh** file, and the material file. The others will either remain unchanged until they are covered in a future tutorial.
+
+@section Material_File Material File
+
+After running the **generateInputFiles.py** script, you can navigate to the **inputFiles** folder to find the **polycrystal.txt** document. Before all else, in this document you will find the first line will, by default, be “materialFile=AlMg15.txt;” which will direct **microStructureGenerator** to the material file of the same name. Navigating to the **AlMg15.txt** file, also generated in the **inputFiles** folder, you can see the parameters that MoDELib will use to generate a desired microstructure and dislocations – as well as the units for these parameters when applicable; these parameters are separated into general information, mobility parameters, gamma-surface, GlidePlane Noise, Vacancy diffusion, and Second Phases. 
+
+As mentioned earlier, within the **Library** folder of MoDELib, there is a **Materials** folder that contains other commonly used materials for simulation purposes – as long as you insert the material’s **.txt** file into the **inputFiles** folder and change the according parameter in **polycrystal.txt** to match accordingly, the simulation should still run (as long as all the files are still compatible). This can be especially useful when switching between two materials during simulations, as you can have both materials in the same file and quickly switch between them for comparison purposes. 
+
+**[CAN CHANGE TO FCC BCC OR HEX BUT HAVE TO CHANGE OTHER STUFF ACCORDINGLY (BELOW) SO IT'LL RUN MICROSTRUCTUREGENERATOR]**
+
+@section Mesh_file_and_polycrystal Mesh file and *polycrystal.txt*
+
+On that note, **polycrystal.txt** and the selected **.msh** file will be the primary factors when determining the domain, shape, and orientation of what will be simulated. The **.msh** file itself will determine the shape of what will be simulated, and if desired one can copy over one of the files from the **Meshes** folder in the MoDELib library to use one that would be more appropriate, and change the **materialFile** variable in the **polycrystal.txt** file accordingly to match it.
+
+Looking at the **polycrystal.txt** file itself, you can edit (among other things) the crystal rotation matrix **C2G1** (as mentioned earlier, they were normalized to the **pf.grain1globalX1** and **pf.grain1globalX3** variables from earlier, and if you want to make adjustments through the document itself, it’d be useful to normalize any adjusted vectors), and it is here you can also shift and rotate the mesh itself by adjusting the **F** and **X0** matrices accordingly to what orientation is desired. That being said, if it is possible, it is still recommended to make the adjustments to the domain through the **generateInputFiles.py** script itself, as the **F** variables essentially combine **pf.boxEdges** and **pf.boxScaling** into one variable (in relation to the crystal rotation matrix itself, instead of a global axis), which may be inconvenient to manually adjust.
+
+@copydoc materialFile
+ 
+*/
+}

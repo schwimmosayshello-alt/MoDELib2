@@ -1,0 +1,50 @@
+namespace model 
+{
+/*!
+
+@page tools_page Tools
+@brief A collection of tools and utilities for use with MoDELib2.
+
+This section contains tools and utility scripts for working with MoDELib2.
+
+For information on DD files, see the following:
+ 
+- \ref DD_intro
+- \ref PIL 
+- \ref FEM_intro 
+- \ref Mesh_intro
+- \ref Quadrature_intro 
+
+@section Tests_Folder Tests Folder
+
+Within the MoDELib2 files themselves, if you navigate to the folder entitled "tests," you can find an array of Python files that can be executed individually and may prove useful for doing individual tests. In general, to run any of the tests themselves, all you have to do is navigate to the file containing the test, open a terminal in the file, and type in the following:
+\verbatim
+python3 yourSelectedTest.py
+\endverbatim
+Substituting "yourSelectedTest" with the test you want to run.
+
+For more details on a specific test, feel free to navigate through the following:
+- @subpage analyticalSolidSolutionCorrelations
+- @subpage dislocationMobility
+- @subpage gammaSurface
+- @subpage mdSolidSolutionsCorrelations
+- @subpage mdSolidSolutionsNoiseSample
+- @subpage mdStackingFaultCorrelations
+- @subpage mdStackingFaultNoiseSample
+- @subpage periodicFields
+
+
+@section Miscellaneous Miscellaneous
+
+The following are other topics that may be of interest:
+
+- generateInputFiles.py 
+	- Generates input files for use with MoDELib2 tools. To run it, open a terminal in the folder where you want to generate your input files and type in the following:
+\verbatim
+python3 generateInputFiles.py
+\endverbatim
+- If you are running generateInputFiles.py for the first time, feel free to go here to learn how to modify it from the file itself: @ref "generateInputFiles.py" "generateInputFiles.py source".
+- Alternatively, if you wish to edit the files after they have been generated, feel free to use the following page: @subpage generateInputFiles_docs 
+ 
+*/
+}

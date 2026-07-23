@@ -1,0 +1,18 @@
+namespace model 
+{
+/*!
+
+\page mdSolidSolutionsCorrelations mdSolidSolutionsCorrelations
+ 
+This test uses a molecular dynamics method **(?)** to input a material like that generated for other tests **(am I allowed to say that?)** and creates a noise model for planes of the material and then plots them for easier visualization. 
+
+To that end, scrolling down to the "main" section of the file, (in addition to the material files themselves) one can edit the resolution of the grid that will be generated. **(And more)**
+
+**(Not sure I fully understand -- is this for better understanding when doing actual dislocation n' stuff?)**
+
+@section Section_One Section One
+
+
+ 
+*/
+}
