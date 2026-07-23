@@ -71,7 +71,7 @@ jobs:
           rm -rf wiki/*
           cp -r wiki-output/Pages/* wiki/
           mkdir -p wiki/images
-          cp -r dox/Images/* wiki/images/
+          cp -r dox/Images/* wiki/Images/
 
           if [ -f "wiki-output/index_files.md" ]; then
             sed -n '/^# /,$p' wiki-output/index_files.md \
