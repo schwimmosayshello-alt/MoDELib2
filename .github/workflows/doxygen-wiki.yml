@@ -57,8 +57,8 @@ jobs:
         run: |
           echo "== wiki-output/images =="
           ls -la wiki-output/images/ 2>/dev/null || echo "wiki-output/Images not found"
-          echo "== wiki/images (after copy) =="
-          ls -la wiki/images/ 2>/dev/null || echo "wiki/images not found"
+          echo "== wiki/Images (after copy) =="
+          ls -la wiki/Images/ 2>/dev/null || echo "wiki/images not found"
 
       - name: Checkout wiki repo
         uses: actions/checkout@v4
