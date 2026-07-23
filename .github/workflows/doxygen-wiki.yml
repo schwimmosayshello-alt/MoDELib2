@@ -53,6 +53,13 @@ jobs:
           touch doxybook-templates/meta.tmpl
           doxybook2 --input doxygen/HTML/xml --output wiki-output --templates doxybook-templates
 
+      - name: Debug - check images folder
+        run: |
+          echo "== wiki-output/images =="
+          ls -la wiki-output/images/ 2>/dev/null || echo "wiki-output/Images not found"
+          echo "== wiki/images (after copy) =="
+          ls -la wiki/images/ 2>/dev/null || echo "wiki/images not found"
+
       - name: Checkout wiki repo
         uses: actions/checkout@v4
         with:
