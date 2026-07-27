@@ -101,6 +101,13 @@ jobs:
             echo "- [Classes](Classes)"
             echo "- [Files](Files)"
           } > wiki/_Sidebar.md
+
+      - name: Debug - verify class page exists
+        run: |
+          echo "== Searching for that specific struct's file =="
+          find wiki-output/Classes -iname "*num_traits*"
+          echo "== What actually landed in wiki/ =="
+          find wiki -iname "*num_traits*"
           
       - name: Commit and push wiki changes
         run: |
