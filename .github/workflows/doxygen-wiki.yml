@@ -65,21 +65,33 @@ jobs:
           cp -r wiki-output/Pages/* wiki/
           mkdir -p wiki/images
           cp -r doxygen/dox/Images/* wiki/images/
-
+          
           if [ -f "wiki-output/index_classes.md" ]; then
             sed -n '/^# /,$p' wiki-output/index_classes.md \
               | sed -E 's#Classes/##g; s/\.md#/#/g; s/\.md\)/\)/g' \
               | sed -E 's/\[[a-z]+\]\(([^)#]+)#/[\1]\(\1#/g' \
               > wiki/Classes.md
           fi
-
+          
+          if [ -d "wiki-output/Classes" ]; then
+            for f in wiki-output/Classes/*.md; do
+              cp "$f" wiki/
+            done
+          fi
+          
           if [ -f "wiki-output/index_files.md" ]; then
             sed -n '/^# /,$p' wiki-output/index_files.md \
               | sed -E 's#Files/##g; s/\.md#/#/g; s/\.md\)/\)/g' \
               | sed -E 's/\[[a-z]+\]\(([^)#]+)#/[\1]\(\1#/g' \
               > wiki/Files.md
           fi
-
+          
+          if [ -d "wiki-output/Files" ]; then
+            for f in wiki-output/Files/*.md; do
+              cp "$f" wiki/
+            done
+          fi
+          
           if [ -f "wiki/_home.md" ]; then
             mv wiki/_home.md wiki/Home.md
           else
@@ -88,7 +100,7 @@ jobs:
             echo "- [Classes](Classes)" >> wiki/Home.md
             echo "- [Files](Files)" >> wiki/Home.md
           fi
-
+          
           {
             echo "- [Home](Home)"
             for f in wiki-output/Pages/*.md; do
@@ -101,13 +113,6 @@ jobs:
             echo "- [Classes](Classes)"
             echo "- [Files](Files)"
           } > wiki/_Sidebar.md
-
-      - name: Debug - verify class page exists
-        run: |
-          echo "== Searching for that specific struct's file =="
-          find wiki-output/Classes -iname "*num_traits*"
-          echo "== What actually landed in wiki/ =="
-          find wiki -iname "*num_traits*"
           
       - name: Commit and push wiki changes
         run: |
