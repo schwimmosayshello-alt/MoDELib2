@@ -66,18 +66,18 @@ jobs:
           mkdir -p wiki/images
           cp -r doxygen/dox/Images/* wiki/images/
 
+          if [ -f "wiki-output/index_classes.md" ]; then
+            sed -n '/^# /,$p' wiki-output/index_classes.md \
+              | sed -E 's#Classes/##g; s/\.md#/#/g; s/\.md\)/\)/g' \
+              | sed -E 's/\[[a-z]+\]\(([^)#]+)#/[\1]\(\1#/g' \
+              > wiki/Classes.md
+          fi
+
           if [ -f "wiki-output/index_files.md" ]; then
             sed -n '/^# /,$p' wiki-output/index_files.md \
-              | sed -E 's#Files/##g; s/\.md#/#/g' \
+              | sed -E 's#Files/##g; s/\.md#/#/g; s/\.md\)/\)/g' \
               | sed -E 's/\[[a-z]+\]\(([^)#]+)#/[\1]\(\1#/g' \
               > wiki/Files.md
-          fi
-          
-          if [ -f "wiki-output/index_classes.md" ]; then
-            sed -n '/^# /,$p' wiki-output/index_classes.md | sed -E 's#Classes/##g; s/\.md#/#/g' > wiki/Classes.md
-          fi
-          if [ -d "wiki-output/Classes" ]; then
-            cp wiki-output/Classes/*.md wiki/ 2>/dev/null || true
           fi
 
           if [ -f "wiki/_home.md" ]; then
