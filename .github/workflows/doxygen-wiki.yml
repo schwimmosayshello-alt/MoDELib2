@@ -52,10 +52,6 @@ jobs:
           mkdir -p doxybook-templates
           touch doxybook-templates/meta.tmpl
           doxybook2 --input doxygen/HTML/xml --output wiki-output --templates doxybook-templates
-
-      - name: Debug - show index_classes raw content
-        run: |
-          head -60 wiki-output/index_classes.md
     
       - name: Checkout wiki repo
         uses: actions/checkout@v4
@@ -72,13 +68,19 @@ jobs:
           
           if [ -f "wiki-output/index_classes.md" ]; then
             sed -n '/^# /,$p' wiki-output/index_classes.md \
-              | sed -E 's#Classes/##g; s/\.md#/#/g; s/\.md\)/\)/g' \
+              | sed -E 's#(Classes|Files|Namespaces|Examples|Modules)/##g; s/\.md#/#/g; s/\.md\)/\)/g' \
               | sed -E 's/\[[a-z]+\]\(([^)#]+)#/[\1]\(\1#/g' \
               > wiki/Classes.md
           fi
           
           if [ -d "wiki-output/Classes" ]; then
             for f in wiki-output/Classes/*.md; do
+              cp "$f" wiki/
+            done
+          fi
+
+          if [ -d "wiki-output/Namespaces" ]; then
+            for f in wiki-output/Namespaces/*.md; do
               cp "$f" wiki/
             done
           fi
