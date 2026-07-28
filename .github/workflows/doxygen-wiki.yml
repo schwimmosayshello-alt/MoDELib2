@@ -53,6 +53,10 @@ jobs:
           touch doxybook-templates/meta.tmpl
           doxybook2 --input doxygen/HTML/xml --output wiki-output --templates doxybook-templates
 
+      - name: Debug - show index_classes raw content
+        run: |
+          head -60 wiki-output/index_classes.md
+    
       - name: Checkout wiki repo
         uses: actions/checkout@v4
         with:
