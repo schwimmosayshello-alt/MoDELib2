@@ -120,7 +120,11 @@ jobs:
             echo "- [Files](Files)"
           } > wiki/_Sidebar.md
 
-          find wiki -name "*.md" -exec sed -i -E 's#(Classes|Files|Namespaces|Examples|Modules|Pages)/##g; s/\.md#/#/g; s/\.md\)/\)/g' {} \;
+          find wiki -name "*.md" -exec sed -i -E \
+            -e 's#(Classes|Files|Namespaces|Examples|Modules|Pages)/##g' \
+            -e 's/\.md#/#/g' \
+            -e 's/\.md\)/\)/g' \
+            {} \;
           
       - name: Commit and push wiki changes
         run: |
