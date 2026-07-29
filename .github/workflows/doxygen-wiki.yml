@@ -46,6 +46,13 @@ jobs:
           cd doxygen/
           doxygen Doxyfile
 
+      - name: Debug - list HTML graph images
+        run: |
+          echo "== Searching for generated graph images =="
+          find doxygen/HTML -iname "*inherit*" -o -iname "*collab*" | head -30
+          echo "== One example structure, if found =="
+          find doxygen/HTML -iname "*noise_traits*"
+
       - name: Convert XML to Markdown
         run: |
           mkdir -p wiki-output
