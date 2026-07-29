@@ -1077,7 +1077,17 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which Doxygen is
 # run.
 
-EXCLUDE                = ../../model/Math/MINRES.h
+EXCLUDE                = ../../model/Math/MINRES.h \
+                         ../doxybook2 \
+                         ../doxybook2.zip \
+                         ../doxygen-1.9.1 \
+                         ../doxygen-1.9.1.linux.bin.tar.gz \
+                         ../libclang1-9_9.0.1-12_amd64.deb \
+                         ../libclang-cpp9_9.0.1-12_amd64.deb \
+                         ../libllvm9_9.0.1-12_amd64.deb \
+                         ../libffi7_3.3-4_amd64.deb \
+                         ../.git \
+                         ../.github
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
