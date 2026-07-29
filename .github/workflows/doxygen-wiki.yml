@@ -46,13 +46,6 @@ jobs:
           cd doxygen/
           doxygen Doxyfile
 
-      - name: Debug - list HTML graph images
-        run: |
-          echo "== Searching for generated graph images =="
-          find doxygen/HTML -iname "*inherit*" -o -iname "*collab*" | head -30
-          echo "== One example structure, if found =="
-          find doxygen/HTML -iname "*noise_traits*"
-
       - name: Convert XML to Markdown
         run: |
           mkdir -p wiki-output
@@ -127,6 +120,18 @@ jobs:
             echo "- [Files](Files)"
           } > wiki/_Sidebar.md
 
+          for f in wiki/struct*.md wiki/class*.md; do
+            [ -f "$f" ] || continue
+            base=$(basename "$f" .md)
+            graph=""
+            [ -f "doxygen/HTML/${base}__inherit__graph.jpg" ] && graph="${base}__inherit__graph.jpg"
+            [ -z "$graph" ] && [ -f "doxygen/HTML/${base}__coll__graph.jpg" ] && graph="${base}__coll__graph.jpg"
+            if [ -n "$graph" ]; then
+              cp "doxygen/HTML/$graph" "wiki/images/$graph"
+              awk -v img="images/$graph" 'NR==1{print; print ""; print "![Diagram](" img ")"; next} {print}' "$f" > "${f}.tmp" && mv "${f}.tmp" "$f"
+            fi
+          done
+  
           find wiki -name "*.md" -exec sed -i -E \
             -e 's#(Classes|Files|Namespaces|Examples|Modules|Pages)/##g' \
             -e 's/\.md#/#/g' \
