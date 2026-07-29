@@ -120,6 +120,7 @@ jobs:
             echo "- [Files](Files)"
           } > wiki/_Sidebar.md
 
+          # These graphs are really big, so comment this block off if desired
           for f in wiki/struct*.md wiki/class*.md; do
             [ -f "$f" ] || continue
             base=$(basename "$f" .md)
