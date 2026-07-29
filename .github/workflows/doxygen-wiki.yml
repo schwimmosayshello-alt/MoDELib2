@@ -46,6 +46,11 @@ jobs:
           cd doxygen/
           doxygen Doxyfile
 
+      - name: Debug - list top-level scanned folders
+        run: |
+          cd doxygen
+          ls -la ../
+
       - name: Convert XML to Markdown
         run: |
           mkdir -p wiki-output
