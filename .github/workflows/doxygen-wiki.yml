@@ -106,6 +106,51 @@ jobs:
             echo "- [Classes](Classes)" >> wiki/Home.md
             echo "- [Files](Files)" >> wiki/Home.md
           fi
+
+          cat > /tmp/nest.py << 'PYEOF'
+          import sys, re
+
+          def parse(lines):
+              root = {"depth": -1, "text": None, "children": []}
+              stack = [root]
+              for line in lines:
+                  if not line.strip() or not line.lstrip().startswith('* '):
+                      continue
+                  stripped = line.lstrip(' ')
+                  indent = len(line) - len(stripped)
+                  content = stripped[2:].rstrip()
+                  node = {"depth": indent, "text": content, "children": []}
+                  while stack[-1]["depth"] >= indent:
+                      stack.pop()
+                  stack[-1]["children"].append(node)
+                  stack.append(node)
+              return root
+
+          def label(text):
+              m = re.search(r'\[([^\]]+)\]', text)
+              return m.group(1) if m else re.sub(r'\*|\[|\]|\(|\)', '', text)
+
+          def render(node, out):
+              for child in node["children"]:
+                  if child["children"]:
+                      out.append("<details>")
+                      out.append(f"<summary>{label(child['text'])}</summary>")
+                      out.append("")
+                      render(child, out)
+                      out.append("")
+                      out.append("</details>")
+                  else:
+                      out.append(f"- {child['text']}")
+
+          lines = open(sys.argv[1]).read().splitlines()
+          tree = parse(lines)
+          out = []
+          render(tree, out)
+          print("\n".join(out))
+          PYEOF
+
+          python3 /tmp/nest.py wiki-output/index_classes.md > /tmp/classes_nested.md
+          python3 /tmp/nest.py wiki-output/index_files.md > /tmp/files_nested.md
           
           {
             echo "- [Home](Home)"
@@ -118,23 +163,24 @@ jobs:
             done
 
             echo ""
+            echo "- [Classes (full page)](Classes)"
             echo "<details>"
             echo "<summary>Classes</summary>"
             echo ""
-            tail -n +2 wiki/Classes.md
+            cat /tmp/classes_nested.md
             echo ""
             echo "</details>"
 
             echo ""
+            echo "- [Files (full page)](Files)"
             echo "<details>"
             echo "<summary>Files</summary>"
             echo ""
-            tail -n +2 wiki/Files.md
+            cat /tmp/files_nested.md
             echo ""
             echo "</details>"
           } > wiki/_Sidebar.md
 
-          # These graphs are really big, so comment this block off if desired
           for f in wiki/struct*.md wiki/class*.md; do
             [ -f "$f" ] || continue
             base=$(basename "$f" .md)
