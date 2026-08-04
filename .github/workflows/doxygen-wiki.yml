@@ -133,12 +133,14 @@ jobs:
           def render(node, out):
               for child in node["children"]:
                   if child["children"]:
+                      out.append("")
                       out.append("<details>")
                       out.append(f"<summary>{label(child['text'])}</summary>")
                       out.append("")
                       render(child, out)
                       out.append("")
                       out.append("</details>")
+                      out.append("")
                   else:
                       out.append(f"- {child['text']}")
 
