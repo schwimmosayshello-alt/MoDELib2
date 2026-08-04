@@ -167,15 +167,14 @@ jobs:
             echo ""
             echo "- [Classes (full page)](Classes)"
             echo "<details>"
+            echo ""
+            echo "- [Files (full page)](Files)"
+            echo "<details>"
             echo "<summary>Classes</summary>"
             echo ""
             cat /tmp/classes_nested.md
             echo ""
-            echo "</details>"
-
-            echo ""
-            echo "- [Files (full page)](Files)"
-            echo "<details>"
+            echo "</details>"            
             echo "<summary>Files</summary>"
             echo ""
             cat /tmp/files_nested.md
