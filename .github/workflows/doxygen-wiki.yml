@@ -166,6 +166,9 @@ jobs:
 
             echo ""
             echo "- [Classes (full page)](Classes)"
+            echo "- [Files (full page)](Files)"
+
+            echo ""
             echo "<details>"
             echo "<summary>Classes</summary>"
             echo ""
@@ -174,7 +177,6 @@ jobs:
             echo "</details>"
 
             echo ""
-            echo "- [Files (full page)](Files)"
             echo "<details>"
             echo "<summary>Files</summary>"
             echo ""
