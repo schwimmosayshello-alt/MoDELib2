@@ -116,8 +116,22 @@ jobs:
               [ -z "$title" ] && title="$filename"
               echo "- [$title]($filename)"
             done
-            echo "- [Classes](Classes)"
-            echo "- [Files](Files)"
+
+            echo ""
+            echo "<details>"
+            echo "<summary>Classes</summary>"
+            echo ""
+            tail -n +2 wiki/Classes.md
+            echo ""
+            echo "</details>"
+
+            echo ""
+            echo "<details>"
+            echo "<summary>Files</summary>"
+            echo ""
+            tail -n +2 wiki/Files.md
+            echo ""
+            echo "</details>"
           } > wiki/_Sidebar.md
 
           # These graphs are really big, so comment this block off if desired
