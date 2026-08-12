@@ -142,7 +142,7 @@ jobs:
                       out.append("</details>")
                       out.append("")
                   else:
-                      out.append(f"{child['text']}"); echo ""
+                      out.append(f"{child['text']}")
                       # Or out.append(f"- {child['text']}")
 
           lines = open(sys.argv[1]).read().splitlines()
