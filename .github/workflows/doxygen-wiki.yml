@@ -173,22 +173,17 @@ jobs:
             # echo "- [Classes (full page)](Classes)"
             # echo "- [Files (full page)](Files)"
 
-            echo ""
+            echo ""; 
             echo "<details>"
             echo "<summary>Classes</summary>"; echo ""
-            echo ""
             cat /tmp/classes_nested.md
-            echo ""
-            # echo "- </details>";
-            echo "</details>"
+            echo ""; echo "</details>"; echo ""
 
-            echo ""
+            echo ""; 
             echo "<details>"
             echo "<summary>Files</summary>"; echo ""
-            echo ""
             cat /tmp/files_nested.md
-            echo ""
-            echo "</details>"
+            echo ""; echo "</details>"; echo ""
           } > wiki/_Sidebar.md
 
           for f in wiki/struct*.md wiki/class*.md; do
