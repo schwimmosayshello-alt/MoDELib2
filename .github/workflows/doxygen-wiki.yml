@@ -156,22 +156,22 @@ jobs:
           python3 /tmp/nest.py wiki-output/index_files.md > /tmp/files_nested.md
           
           {
-            echo "[Home](Home)"
-            # echo "- [Home](Home)"
+            # echo "[Home](Home)"
+            echo "- [Home](Home)"
             for f in wiki-output/Pages/*.md; do
               filename=$(basename "$f" .md)
               [ "$filename" == "_home" ] && continue
               title=$(grep -m 1 '^# ' "$f" | sed 's/^# //')
               [ -z "$title" ] && title="$filename"
-              echo "[$title]($filename)"
-              # echo "- [$title]($filename)"
+              # echo "[$title]($filename)"
+              echo "- [$title]($filename)"
             done
 
             echo ""
-            echo "[Classes (full page)](Classes)"
-            echo "[Files (full page)](Files)"
-            # echo "- [Classes (full page)](Classes)"
-            # echo "- [Files (full page)](Files)"
+            # echo "[Classes (full page)](Classes)"
+            # echo "[Files (full page)](Files)"
+            echo "- [Classes (full page)](Classes)"
+            echo "- [Files (full page)](Files)"
 
             echo ""
             echo "<details>"
