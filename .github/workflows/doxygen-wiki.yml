@@ -42,6 +42,7 @@ jobs:
           sudo mv doxybook2/bin/doxybook2 /usr/local/bin/
 
       - name: Run Doxygen
+        timeout-minutes: 5
         run: |
           cd doxygen/
           doxygen Doxyfile
@@ -142,9 +143,9 @@ jobs:
                       out.append("</details>")
                       out.append("")
                   else:
-                      # out.append(f"{child['text']}")
-                      # out.append("")
-                      out.append(f"- {child['text']}")
+                      out.append(f"{child['text']}")
+                      out.append("")
+                      # out.append(f"- {child['text']}")
 
           lines = open(sys.argv[1]).read().splitlines()
           tree = parse(lines)
