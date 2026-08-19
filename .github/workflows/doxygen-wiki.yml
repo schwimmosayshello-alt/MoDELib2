@@ -142,9 +142,9 @@ jobs:
                       out.append("</details>")
                       out.append("")
                   else:
-                      out.append(f"{child['text']}")
-                      out.append("")
-                      # Or out.append(f"- {child['text']}")
+                      # out.append(f"{child['text']}")
+                      # out.append("")
+                      out.append(f"- {child['text']}")
 
           lines = open(sys.argv[1]).read().splitlines()
           tree = parse(lines)
